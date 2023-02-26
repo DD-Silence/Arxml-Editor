@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="GenTool_CsDataServerAsrBase">
+      <HintPath>lib\GenTool_CsDataServerAsrBase.dll</HintPath>
+    </Reference>
+    <Reference Include="GenTool_CsDataServerDomAsr4">
+      <HintPath>lib\GenTool_CsDataServerDomAsr4.dll</HintPath>
+    </Reference>
+    <Reference Include="GenTool_CsDataServerDomAsr4.XmlSerializers">
+      <HintPath>lib\GenTool_CsDataServerDomAsr4.XmlSerializers.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
