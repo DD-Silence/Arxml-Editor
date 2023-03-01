@@ -210,6 +210,10 @@ namespace ArxmlEditor
                                     }
                                 }
                             }
+                            else if ((obj is not IEnumerable) || (obj is string))
+                            {
+                                var itemAdd = cmMember.Items.Add("Edit");
+                            }
 
                             if (obj.CanDelete(mObjRole))
                             {
