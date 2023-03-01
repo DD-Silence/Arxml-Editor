@@ -111,8 +111,16 @@ namespace ArxmlEditor
                         nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
                         foreach (var e in eMetas)
                         {
-                            var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Key.Name}");
-                            nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
+                            if (e is Enum en)
+                            {
+                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e.ToString()[1..]}: {m.Key.Name}");
+                                nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
+                            }
+                            else
+                            {
+                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Key.Name}");
+                                nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
+                            }
                         }
                     }
                     else
@@ -123,7 +131,7 @@ namespace ArxmlEditor
                 }
                 else if (m.Value is Enum eMeta)
                 {
-                    var nodeCurrent = node.Nodes.Add($"{eMeta}: {m.Key.Name}");
+                    var nodeCurrent = node.Nodes.Add($"{eMeta.ToString()[1..]}: {m.Key.Name}");
                     nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
                 }
                 else
