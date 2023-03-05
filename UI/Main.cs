@@ -38,7 +38,7 @@ namespace ArxmlEditor
             {
                 if (m.Value is IEnumerable<IMetaObjectInstance> mObjs)
                 {
-                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}");
+                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
                     nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
                                               $"Min: {m.Key.Min()}{Environment.NewLine}" +
                                               $"Max: {m.Key.Max()}{Environment.NewLine}";
@@ -104,7 +104,7 @@ namespace ArxmlEditor
                 {
                     if (m.Value is not string)
                     {
-                        var nodeCurrent = node.Nodes.Add($"{m.Key.Name}");
+                        var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
                         nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
                                                   $"Min: {m.Key.Min()}{Environment.NewLine}" +
                                                   $"Max: {m.Key.Max()}{Environment.NewLine}";
@@ -113,7 +113,7 @@ namespace ArxmlEditor
                         {
                             if (e is Enum en)
                             {
-                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e.ToString()[1..]}: {m.Key.Name}");
+                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{en.ToString()[1..]}: {m.Key.Name}");
                                 nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
                             }
                             else
