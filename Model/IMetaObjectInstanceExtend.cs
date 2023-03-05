@@ -33,6 +33,11 @@ namespace ArxmlEditor.Model
                     continue;
                 }
 
+                if (o.Name == "ShortName")
+                {
+                    continue;
+                }
+
                 if (o.Single())
                 {
                     if (o.Option())
