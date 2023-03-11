@@ -1,11 +1,25 @@
-﻿using Meta.Helper;
+﻿/*  
+ *  This file is a part of Arxml Editor.
+ *  
+ *  Copyright (C) 2021-2023 DJS Studio E-mail: ddsilence@sina.cn
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using GenTool_CsDataServerDomAsr4.Iface;
+using Meta.Helper;
 using Meta.Iface;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.Design;
+using System.Data;
 
 namespace ArxmlEditor.Model
 {
@@ -28,8 +42,8 @@ namespace ArxmlEditor.Model
         public IEnumerable<Enum>? Enums { get { return Enums; } private set { Enums = value; } }
         public object? Obj { get { return Obj; } private set { Obj = value; } }
         public IEnumerable<object>? Objs { get { return Objs; } private set { Objs = value; } }
-        public IMetaRI? Role { get { return Role; } private set { Role = value; } }
-        public ArCommon? Parent { get { return Parent; } private set { Parent = value; } }
+        public IMetaRI Role { get { return Role; } private set { Role = value; } }
+        public ArCommon  Parent { get { return Parent; } private set { Parent = value; } }
 
         public ArCommon(IMetaObjectInstance meta, IMetaRI role, ArCommon parent)
         {
@@ -178,7 +192,7 @@ namespace ArxmlEditor.Model
             return null;
         }
 
-        public object GetObjs()
+        public IEnumerable<object> GetObjs()
         {
             if ((Type == ArCommonType.Others) && (Objs != null))
             {
@@ -362,6 +376,97 @@ namespace ArxmlEditor.Model
                     method.Invoke(arObj, new object[] { isSpecifed });
                 }
             }
+        }
+
+        public bool CanDelete()
+        {
+            if (Type == ArCommonType.MetaObject)
+            {
+                var mObj = GetMeta();
+
+                if ((uint)Role.MaxOccurs > 1)
+                {
+                    var brothers = mObj.Owner.GetCollectionValue(Role.Name);
+
+                    if (brothers.Count() > Role.MinOccurs)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (Role.MinOccurs == 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                if ((uint)Role.MinOccurs == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool CanEdit()
+        {
+            if ((Type == ArCommonType.Enum) || (Type == ArCommonType.Other))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void Add(IMetaRI role)
+        {
+            if (role.MultipleInterfaceTypes == true)
+            {
+                return;
+            }
+
+
+            if (Type != ArCommonType.MetaObject)
+            {
+                return;
+            }
+
+            var mObj = GetMeta();
+
+            if(role.Single())
+            {
+                if (role.Option())
+                {
+                    mObj.SetSpecified(role.Name, true);
+                }
+            }
+            else if (role.Multiply())
+            {
+                var collection = mObj.GetCollectionValueRaw(role.Name);
+
+                if (collection is IEnumerable<IMetaObjectInstance>)
+                {
+                    mObj.AddNew(role.Name, role.InterfaceType);
+                }
+                else
+                {
+                    mObj.AddObject(role);
+                }
+            }
+        }
+
+        public void Add(IMetaRI role, Type type)
+        {
+            if (role.MultipleInterfaceTypes == false)
+            {
+                return;
+            }
+
+            var mObj = GetMeta();
+
+            mObj.AddNew(role.Name, type);
         }
     }
 }
