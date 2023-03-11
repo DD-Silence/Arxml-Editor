@@ -32,12 +32,13 @@ namespace ArxmlEditor
             InitializeComponent();
         }
 
-        private void ConstructTreeView(IMetaObjectInstance arObj, TreeNode node, bool first)
+        private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
         {
             foreach (var m in arObj.GetExistingMember())
             {
-                if (m.Value is IEnumerable<IMetaObjectInstance> mObjs)
+                if (m.Value.Type == ArCommonType.MetaObjects)
                 {
+                    var mObjs = m.Value.GetMetas();
                     var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
                     nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
                                               $"Min: {m.Key.Min()}{Environment.NewLine}" +
@@ -193,10 +194,30 @@ namespace ArxmlEditor
 
             switch (e.Button)
             {
+                case MouseButtons.Left:
+                    {
+                        if (nodeSelect.Tag is (object parent, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                        {
+                            if (true == obj.CanEdit())
+                            {
+                                tvContent.LabelEdit = true;
+                                if (obj is string)
+                                {
+
+                                }
+                            }
+                            else
+                            {
+                                tvContent.LabelEdit = false;
+                            }
+                        }
+                    }
+                    break;
+
                 case MouseButtons.Right:
                     {
                         cmMember.Items.Clear();
-                        if (nodeSelect.Tag is (_ , object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (object parent, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
                         {
                             if (obj is IMetaObjectInstance mObj)
                             {
@@ -210,10 +231,6 @@ namespace ArxmlEditor
                                     }
                                 }
                             }
-                            else if ((obj is not IEnumerable) || (obj is string))
-                            {
-                                var itemAdd = cmMember.Items.Add("Edit");
-                            }
 
                             if (obj.CanDelete(mObjRole))
                             {
@@ -226,7 +243,7 @@ namespace ArxmlEditor
                     }
                     break;
 
-                default: 
+                default:
                     break;
             }
         }
@@ -238,7 +255,7 @@ namespace ArxmlEditor
                 if (dropItem.Tag is (TreeNode nodeSelect, IMetaObjectInstance mObj, IMetaRI role))
                 {
                     if (role.Single())
-                    {  
+                    {
                         if (role.Option())
                         {
                             mObj.SetSpecified(role.Name, true);
@@ -336,6 +353,24 @@ namespace ArxmlEditor
             }
         }
 
+        private void DropEditHandler(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripDropDownItem dropItem)
+            {
+                if (dropItem.Tag is (TreeNode nodeSelect, object obj, IMetaRI role))
+                {
+                    if (obj is IMetaObjectInstance meta)
+                    {
+                        meta.SetValue(role.Name, "123");
+
+                        var parentNode = nodeSelect.Parent;
+                        parentNode.Nodes.Clear();
+                        ConstructTreeView(meta, parentNode, true);
+                    }
+                }
+            }
+        }
+
         private void tvContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
             if (e.Node is TreeNode nodeSelect)
@@ -361,6 +396,9 @@ namespace ArxmlEditor
             }
         }
 
+        private void ConstructContent(IMetaObjectInstance mobj)
+        {
 
+        }
     }
 }

@@ -15,8 +15,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
+using System.Collections;
 
 namespace ArxmlEditor.Model
 {
@@ -49,6 +51,19 @@ namespace ArxmlEditor.Model
                 {
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public static bool CanEdit(this object obj)
+        {
+            if ((obj is not IEnumerable) || (obj is string))
+            {
+                return true;
+            }
+            if (obj is IReferrable)
+            {
+                return true;
             }
             return false;
         }

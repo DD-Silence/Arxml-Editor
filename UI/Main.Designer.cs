@@ -28,43 +28,63 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.tvContent = new System.Windows.Forms.TreeView();
-            this.cmMember = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            tvContent = new TreeView();
+            cmMember = new ContextMenuStrip(components);
+            sc = new SplitContainer();
+            ((System.ComponentModel.ISupportInitialize)sc).BeginInit();
+            sc.Panel1.SuspendLayout();
+            sc.SuspendLayout();
+            SuspendLayout();
             // 
             // tvContent
             // 
-            this.tvContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tvContent.Location = new System.Drawing.Point(0, 0);
-            this.tvContent.Name = "tvContent";
-            this.tvContent.Size = new System.Drawing.Size(1006, 721);
-            this.tvContent.TabIndex = 0;
-            this.tvContent.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.tvContent_BeforeExpand);
-            this.tvContent.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tvContent_MouseClick);
+            tvContent.Dock = DockStyle.Fill;
+            tvContent.Location = new Point(0, 0);
+            tvContent.Name = "tvContent";
+            tvContent.Size = new Size(335, 721);
+            tvContent.TabIndex = 0;
+            tvContent.BeforeExpand += tvContent_BeforeExpand;
+            tvContent.MouseClick += tvContent_MouseClick;
             // 
             // cmMember
             // 
-            this.cmMember.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.cmMember.Name = "cmMember";
-            this.cmMember.Size = new System.Drawing.Size(61, 4);
+            cmMember.ImageScalingSize = new Size(20, 20);
+            cmMember.Name = "cmMember";
+            cmMember.Size = new Size(61, 4);
+            // 
+            // sc
+            // 
+            sc.Dock = DockStyle.Fill;
+            sc.Location = new Point(0, 0);
+            sc.Name = "sc";
+            // 
+            // sc.Panel1
+            // 
+            sc.Panel1.Controls.Add(tvContent);
+            sc.Size = new Size(1006, 721);
+            sc.SplitterDistance = 335;
+            sc.TabIndex = 1;
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1006, 721);
-            this.Controls.Add(this.tvContent);
-            this.Name = "Main";
-            this.Text = "ArxmlEditor";
-            this.Load += new System.EventHandler(this.Main_Load);
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(9F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1006, 721);
+            Controls.Add(sc);
+            Name = "Main";
+            Text = "ArxmlEditor";
+            Load += Main_Load;
+            sc.Panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)sc).EndInit();
+            sc.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         #endregion
 
         private TreeView tvContent;
         private ContextMenuStrip cmMember;
+        private SplitContainer sc;
     }
 }
