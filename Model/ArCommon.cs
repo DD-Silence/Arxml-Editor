@@ -46,8 +46,13 @@ namespace ArxmlEditor.Model
         public IMetaRI Role { get; }
         public ArCommon  Parent { get; }
 
-        public ArCommon(object obj, IMetaRI role, ArCommon parent)
+        public ArCommon(object? obj, IMetaRI role, ArCommon parent)
         {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
             if (obj is IMetaObjectInstance meta)
             {
                 Meta = meta;
@@ -238,10 +243,10 @@ namespace ArxmlEditor.Model
         public List<ArCommon> GetExistingMember()
         {
             List<ArCommon> result = new();
-            var arObj = TryGetMeta();
 
-            if (arObj != null)
+            if (Type == ArCommonType.MetaObject)
             {
+                var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
@@ -286,10 +291,10 @@ namespace ArxmlEditor.Model
         public List<IMetaRI> GetCandidateMember()
         {
             List<IMetaRI> result = new();
-            var arObj = TryGetMeta();
 
-            if (arObj != null)
+            if (Type == ArCommonType.MetaObject)
             {
+                var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
@@ -323,7 +328,41 @@ namespace ArxmlEditor.Model
             return result;
         }
 
-        public object? AddObject(IMetaRI role)
+        public void Check()
+        {
+            if (Type == ArCommonType.MetaObject)
+            {
+                var arObj = GetMeta();
+                foreach (var o in arObj.MetaAllRoles)
+                {
+                    if (o.RoleType == RoleTypeEnum.Reference)
+                    {
+                        continue;
+                    }
+
+                    if (o.Single())
+                    {
+                        if (o.Required())
+                        {
+                            var v = arObj.GetValue(o.Name);
+                            if (v == null)
+                            {
+                                if (o.InterfaceType.Name == "String")
+                                {
+                                    arObj.SetValue(o.Name, "");
+                                }
+                                else
+                                {
+                                    throw new ArgumentNullException();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private object? AddObject(IMetaRI role)
         {
             var arObj = TryGetMeta();
 
@@ -339,6 +378,7 @@ namespace ArxmlEditor.Model
             }
             return null;
         }
+
         public void RemoveAllObject(IMetaRI role)
         {
             var arObj = TryGetMeta();
@@ -402,6 +442,15 @@ namespace ArxmlEditor.Model
             }
         }
 
+        public void SetSpecified(IMetaRI role, bool isSpecifed)
+        {
+            if (Type == ArCommonType.MetaObject)
+            {
+                var mObj = GetMeta();
+                mObj.SetSpecified(role.Name, isSpecifed);
+            }
+        }
+
         public void SetObjectSpecified(IMetaRI role, bool isSpecifed)
         {
             var arObj = TryGetMeta();
@@ -458,17 +507,11 @@ namespace ArxmlEditor.Model
             return false;
         }
 
-        public void Add(IMetaRI role)
+        public ArCommon? Add(IMetaRI role, Type? type = null)
         {
-            if (role.MultipleInterfaceTypes == true)
-            {
-                return;
-            }
-
-
             if (Type != ArCommonType.MetaObject)
             {
-                return;
+                return null;
             }
 
             var mObj = GetMeta();
@@ -478,33 +521,39 @@ namespace ArxmlEditor.Model
                 if (role.Option())
                 {
                     mObj.SetSpecified(role.Name, true);
+                    var newCommon = new ArCommon(mObj.GetValue(role.Name), role, this);
+                    newCommon.Check();
+                    return newCommon;
                 }
             }
             else if (role.Multiply())
             {
-                var collection = mObj.GetCollectionValueRaw(role.Name);
-
-                if (collection is IEnumerable<IMetaObjectInstance>)
+                if (role.MultipleInterfaceTypes == true)
                 {
-                    mObj.AddNew(role.Name, role.InterfaceType);
+                    var newObj = mObj.AddNew(role.Name, type);
+                    var newCommon = new ArCommon(newObj, role, this);
+                    newCommon.Check();
+                    return newCommon;
                 }
                 else
                 {
-                    AddObject(role);
+                    if (role.IsMeta())
+                    {
+                        var newObj = mObj.AddNew(role.Name, role.InterfaceType);
+                        var newCommon = new ArCommon(newObj, role, this);
+                        newCommon.Check();
+                        return newCommon;
+                    }
+                    else
+                    {
+                        var newObj = AddObject(role);
+                        var newCommon = new ArCommon(newObj, role, this);
+                        newCommon.Check();
+                        return new ArCommon(newObj, role, this);
+                    }
                 }
             }
-        }
-
-        public void Add(IMetaRI role, Type type)
-        {
-            if (role.MultipleInterfaceTypes == false)
-            {
-                return;
-            }
-
-            var mObj = GetMeta();
-
-            mObj.AddNew(role.Name, type);
+            return null;
         }
 
         public Type[] RoleTypesFor(string roleName)

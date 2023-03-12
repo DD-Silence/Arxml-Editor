@@ -243,14 +243,10 @@ namespace ArxmlEditor
                 {
                     if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, IMetaRI role3))
                     {
-                        if (c3.Type == ArCommonType.MetaObject)
-                        {
-                            var mObj3 = c3.GetMeta();
-                            mObj3.AddNew(role3.Name, type2);
-                            nodeSelect3.Nodes.Clear();
-                            ConstructTreeView(c3, nodeSelect3, true);
-                            nodeSelect3.Expand();
-                        }
+                        c3.Add(role3, type2);
+                        nodeSelect3.Nodes.Clear();
+                        ConstructTreeView(c3, nodeSelect3, true);
+                        nodeSelect3.Expand();
                     }
                 }
             }
@@ -313,15 +309,15 @@ namespace ArxmlEditor
                             c3.Parent.RemoveAllObject(c3.Role);
                             var p = nodeSelect2.Parent;
                             p.Nodes.Clear();
-                            //ConstructTreeView(parent, p, true);
+                            ConstructTreeView(c3.Parent, p, true);
                             p.Expand();
                         }
                         else if (obj2.GetType().IsClass)
                         {
-                            //c.Parent.SetSpecified(c.Role, false);
+                            c3.Parent.SetSpecified(c3.Role, false);
                             var p = nodeSelect2.Parent;
                             p.Nodes.Clear();
-                            //ConstructTreeView(parent, p, true);
+                            ConstructTreeView(c3.Parent, p, true);
                             p.Expand();
                         }
                         else
@@ -329,7 +325,7 @@ namespace ArxmlEditor
                             c3.Parent.RemoveObject(c3.Role, c3);
                             var p = nodeSelect2.Parent.Parent;
                             p.Nodes.Clear();
-                            //ConstructTreeView(parent, p, true);
+                            ConstructTreeView(c3.Parent, p, true);
                             p.Expand();
                         }
                     }

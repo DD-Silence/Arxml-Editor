@@ -16,6 +16,7 @@
  */
 
 using Meta.Iface;
+using System.Reflection;
 
 namespace ArxmlEditor.Model
 {
@@ -73,6 +74,36 @@ namespace ArxmlEditor.Model
                 return "Inf";
             }
             return role.MaxOccurs.ToString();
+        }
+
+        public static bool IsMeta(this IMetaRI role)
+        {
+            foreach (var i in role.InterfaceType.GetTypeInfo().ImplementedInterfaces)
+            {
+                if (i.Name == "IMetaObjectInstance")
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool IsEnum(this IMetaRI role)
+        {
+            if (role.InterfaceType.BaseType == null)
+            {
+                return false;
+            }
+            if (role.InterfaceType.BaseType.Name == "Enum")
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static bool IsOther(this IMetaRI role)
+        {
+            return (!role.IsMeta() && !role.IsEnum());
         }
     }
 }
