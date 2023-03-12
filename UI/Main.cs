@@ -37,117 +37,91 @@ namespace ArxmlEditor
         {
             foreach (var m in arObj.GetExistingMember())
             {
-                if (m.Value.Type == ArCommonType.MetaObjects)
+                if (m.Type == ArCommonType.MetaObjects)
                 {
-                    var mObjs = m.Value.GetMetas();
-                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
-                    nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m.Value, true, true);
+                    var mObjs = m.GetCommonMetas();
+                    var nodeCurrent = node.Nodes.Add($"{m}");
+                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
+                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
+                    nodeCurrent.Tag = (m, true, true);
                     foreach (var mChild in mObjs)
                     {
                         TreeNode nodeCurrent2;
-                        if (mChild is IReferrable refChild)
+                        if (m.Role.MultipleInterfaceTypes)
                         {
-                            if (m.Key.MultipleInterfaceTypes)
-                            {
-                                nodeCurrent2 = nodeCurrent.Nodes.Add($"{refChild.ShortName}");
-                                nodeCurrent2.ToolTipText = $"Type: {mChild.InterfaceType.Name[1..]}{Environment.NewLine}" +
-                                                           $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                           $"Max: {m.Key.Max()}{Environment.NewLine}";
-                            }
-                            else
-                            {
-                                nodeCurrent2 = nodeCurrent.Nodes.Add($"{refChild.ShortName}");
-                                nodeCurrent2.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                           $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                           $"Max: {m.Key.Max()}{Environment.NewLine}";
-                            }
+                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                            nodeCurrent2.ToolTipText = $"Type: {mChild.Role.InterfaceType.Name[1..]}{Environment.NewLine}" +
+                                                        $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                                        $"Max: {m.Role.Max()}{Environment.NewLine}";
                         }
                         else
                         {
-                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild.InterfaceType.Name}");
-                            nodeCurrent2.ToolTipText = $"Type: {mChild.InterfaceType.Name}{Environment.NewLine}" +
-                                                       $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                       $"Max: {m.Key.Max()}{Environment.NewLine}";
+                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                            nodeCurrent2.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
+                                                        $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                                        $"Max: {m.Role.Max()}{Environment.NewLine}";
                         }
-                        nodeCurrent2.Tag = (m.Value, true, false);
+                        nodeCurrent2.Tag = (mChild, true, false);
                         if (first)
                         {
-                            ConstructTreeView(new ArCommon(mChild, m.Key, arObj), nodeCurrent2, false);
+                            ConstructTreeView(mChild, nodeCurrent2, false);
                         }
                     }
                 }
-                else if (m.Value.Type == ArCommonType.MetaObject)
+                else if (m.Type == ArCommonType.MetaObject)
                 {
-                    TreeNode nodeCurrent;
-                    var mObj = m.Value.GetMeta();
-
-                    if (mObj is IReferrable refObj)
-                    {
-                        nodeCurrent = node.Nodes.Add($"{refObj.ShortName}");
-                        nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                  $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                  $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    }
-                    else
-                    {
-                        nodeCurrent = node.Nodes.Add($"{m.Key.Name}");
-                        nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                  $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                  $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    }
-                    nodeCurrent.Tag = (m.Value, true, false);
+                    var nodeCurrent = node.Nodes.Add($"{m}");
+                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
+                                                $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                                $"Max: {m.Role.Max()}{Environment.NewLine}";
+                    nodeCurrent.Tag = (m, true, false);
                     if (first)
                     {
-                        ConstructTreeView(m.Value, nodeCurrent, false);
+                        ConstructTreeView(m, nodeCurrent, false);
                     }
                 }
-                else if (m.Value.Type == ArCommonType.Enums)
+                else if (m.Type == ArCommonType.Enums)
                 {
-                    var enums = m.Value.GetEnums();
+                    var enums = m.GetEnums();
 
-                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
-                    nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m.Value, false, false);
+                    var nodeCurrent = node.Nodes.Add($"{m}");
+                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
+                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
+                    nodeCurrent.Tag = (m, false, false);
                     foreach (var e in enums)
                     {
-                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e.ToString()[1..]}: {m.Key.Name}");
-                        nodeCurrent2.Tag = (new ArCommon(e, m.Key, m.Value), false, false);
+                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e.ToString()[1..]}: {m.Role.Name}");
+                        nodeCurrent2.Tag = (e, false, false);
                         //                            var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Key.Name}");
                         //                            nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
                     }
                 }
-                else if (m.Value.Type == ArCommonType.Others)
+                else if (m.Type == ArCommonType.Others)
                 {
-                    var objs = m.Value.GetObjs();
+                    var objs = m.GetCommonObjs();
+                    var nodeCurrent = node.Nodes.Add($"{m}");
 
-                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
-                    nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m.Value, false, false);
+                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
+                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
+                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
+                    nodeCurrent.Tag = (m, false, false);
                     foreach (var o in objs)
                     {
-                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{o}: {m.Key.Name}");
-                        nodeCurrent2.Tag = (new ArCommon(o, m.Key, m.Value), false, false);
+                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{o}: {m.Role.Name}");
+                        nodeCurrent2.Tag = (o, false, false);
                     }
                 }
-                else if (m.Value.Type == ArCommonType.Enum)
+                else if (m.Type == ArCommonType.Enum)
                 {
-                    var e = m.Value.GetEnum();
-
-                    var nodeCurrent = node.Nodes.Add($"{e.ToString()[1..]}: {m.Key.Name}");
-                    nodeCurrent.Tag = (m.Value, false, false);
+                    var nodeCurrent = node.Nodes.Add($"{m}: {m.Role.Name}");
+                    nodeCurrent.Tag = (m, false, false);
                 }
-                else if (m.Value.Type == ArCommonType.Other)
+                else if (m.Type == ArCommonType.Other)
                 {
-                    var o = m.Value.GetObj();
-                    var nodeCurrent = node.Nodes.Add($"{m.Value}: {m.Key.Name}");
-                    nodeCurrent.Tag = (m.Value, false, false);
+                    var nodeCurrent = node.Nodes.Add($"{m}: {m.Role.Name}");
+                    nodeCurrent.Tag = (m, false, false);
                 }
             }
         }
@@ -167,9 +141,9 @@ namespace ArxmlEditor
             ConstructTreeView(new ArCommon(arFile.root, null, null), rootNode, true);
         }
 
-        private void ConstructAddDropItems(TreeNode node, IMetaObjectInstance mObj, ToolStripDropDownItem container)
+        private void ConstructAddDropItems(TreeNode node, ArCommon common, ToolStripDropDownItem container)
         {
-            foreach (var c in mObj.GetCandidateMember())
+            foreach (var c in common.GetCandidateMember())
             {
                 var toolAdd = container.DropDownItems.Add($"{c.Name}");
                 if (toolAdd is ToolStripDropDownItem dropItem2)
@@ -177,19 +151,19 @@ namespace ArxmlEditor
                     if (c.MultipleInterfaceTypes)
                     {
                         List<ToolStripDropDownItem> items = new();
-                        foreach (var c2 in mObj.RoleTypesFor(c.Name))
+                        foreach (var c2 in common.RoleTypesFor(c.Name))
                         {
                             var item = new ToolStripMenuItem(c2.Name[1..]);
-                            item.Tag = (node, mObj, c2);
+                            item.Tag = (node, common, c2);
                             item.Click += DropAddHandler;
                             items.Add(item);
                         }
                         dropItem2.DropDownItems.AddRange(items.ToArray());
-                        toolAdd.Tag = (node, mObj, c);
+                        toolAdd.Tag = (node, common, c);
                     }
                     else
                     {
-                        toolAdd.Tag = (node, mObj, c);
+                        toolAdd.Tag = (node, common, c);
                         toolAdd.Click += DropAddHandler;
                     }
                 }
@@ -205,15 +179,11 @@ namespace ArxmlEditor
             {
                 case MouseButtons.Left:
                     {
-                        if (nodeSelect.Tag is (object parent, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (ArCommon c, bool isMObj, bool isExpand))
                         {
-                            if (true == obj.CanEdit())
+                            if (true == c.CanEdit())
                             {
                                 tvContent.LabelEdit = true;
-                                if (obj is string)
-                                {
-
-                                }
                             }
                             else
                             {
@@ -230,12 +200,11 @@ namespace ArxmlEditor
                         {
                             if (c.Type == ArCommonType.MetaObject)
                             {
-                                var mObj = c.GetMeta();
                                 var itemAdd = cmMember.Items.Add("Add");
 
                                 if (itemAdd is ToolStripDropDownItem dropItemAdd)
                                 {
-                                    ConstructAddDropItems(nodeSelect, mObj, dropItemAdd);
+                                    ConstructAddDropItems(nodeSelect, c, dropItemAdd);
                                     if (dropItemAdd.DropDownItems.Count == 0)
                                     {
                                         cmMember.Items.Remove(itemAdd);
@@ -337,11 +306,11 @@ namespace ArxmlEditor
                 }
                 else if (dropItem.Tag is (TreeNode nodeSelect2, object obj2, IMetaRI role2))
                 {
-                    if (nodeSelect2.Tag is (IMetaObjectInstance parent, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                    if (nodeSelect2.Tag is (ArCommon c3, bool isMObj, bool isExpand))
                     {
-                        if (obj is IMetaCollectionInstance metas)
+                        if (c3.Type == ArCommonType.MetaObjects)
                         {
-                            parent.RemoveAllObject(mObjRole);
+                            c3.Parent.RemoveAllObject(c3.Role);
                             var p = nodeSelect2.Parent;
                             p.Nodes.Clear();
                             //ConstructTreeView(parent, p, true);
@@ -349,7 +318,7 @@ namespace ArxmlEditor
                         }
                         else if (obj2.GetType().IsClass)
                         {
-                            parent.SetSpecified(mObjRole.Name, false);
+                            //c.Parent.SetSpecified(c.Role, false);
                             var p = nodeSelect2.Parent;
                             p.Nodes.Clear();
                             //ConstructTreeView(parent, p, true);
@@ -357,7 +326,7 @@ namespace ArxmlEditor
                         }
                         else
                         {
-                            parent.RemoveObject(mObjRole, obj);
+                            c3.Parent.RemoveObject(c3.Role, c3);
                             var p = nodeSelect2.Parent.Parent;
                             p.Nodes.Clear();
                             //ConstructTreeView(parent, p, true);
@@ -374,11 +343,20 @@ namespace ArxmlEditor
             {
                 if (nodeSelect.Tag is (ArCommon c, bool isMObj, bool isExpand))
                 {
-                    if ((!isExpand) && (isMObj) && ((c.Type == ArCommonType.MetaObject) || (c.Type == ArCommonType.MetaObjects)))
+                    if ((!isExpand) && (isMObj) && (c.Type == ArCommonType.MetaObject))
                     {
                         nodeSelect.Nodes.Clear();
                         ConstructTreeView(c, nodeSelect, true);
                         nodeSelect.Tag = (c, isMObj, true);
+                    }
+                    else if ((!isExpand) && (isMObj) && (c.Type == ArCommonType.MetaObjects))
+                    {
+                        nodeSelect.Nodes.Clear();
+                        var metas = c.GetCommonMetas();
+                        foreach (var meta in metas)
+                        {
+                            ConstructTreeView(meta, nodeSelect, true);
+                        }
                     }
                 }
             }

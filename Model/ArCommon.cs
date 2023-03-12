@@ -20,6 +20,7 @@ using Meta.Helper;
 using Meta.Iface;
 using System;
 using System.Data;
+using System.Diagnostics.Metrics;
 
 namespace ArxmlEditor.Model
 {
@@ -35,62 +36,50 @@ namespace ArxmlEditor.Model
     };
     public class ArCommon
     {
-        public ArCommonType Type { get { return Type; } private set { Type = value; } }
-        public IMetaObjectInstance? Meta { get { return Meta; } private set { Meta = value; } }
-        public IEnumerable<IMetaObjectInstance>? Metas { get { return Metas; } private set { Metas = value; } }
-        public Enum? Enum { get { return Enum; } private set { Enum = value; } }
-        public IEnumerable<Enum>? Enums { get { return Enums; } private set { Enums = value; } }
-        public object? Obj { get { return Obj; } private set { Obj = value; } }
-        public IEnumerable<object>? Objs { get { return Objs; } private set { Objs = value; } }
-        public IMetaRI Role { get { return Role; } private set { Role = value; } }
-        public ArCommon  Parent { get { return Parent; } private set { Parent = value; } }
-
-        public ArCommon(IMetaObjectInstance meta, IMetaRI role, ArCommon parent)
-        {
-            Meta = meta;
-            Role = role;
-            Parent = parent;
-            Type = ArCommonType.MetaObject;
-        }
-
-        public ArCommon(IEnumerable<IMetaObjectInstance> metas, IMetaRI role, ArCommon parent)
-        {
-            Metas = metas;
-            Role = role;
-            Parent = parent;
-            Type = ArCommonType.MetaObjects;
-        }
-
-        public ArCommon(Enum en, IMetaRI role, ArCommon parent)
-        {
-            Enum = en;
-            Role = role;
-            Parent = parent;
-            Type = ArCommonType.Enum;
-        }
-
-        public ArCommon(IEnumerable<Enum> ens, IMetaRI role, ArCommon parent)
-        {
-            Enums = ens;
-            Role = role;
-            Parent = parent;
-            Type = ArCommonType.Enums;
-        }
+        public ArCommonType Type { get; }
+        public IMetaObjectInstance? Meta { get; }
+        public IEnumerable<IMetaObjectInstance>? Metas { get; }
+        public Enum? Enum { get; }
+        public IEnumerable<Enum>? Enums { get; }
+        public object? Obj { get; }
+        public IEnumerable<object>? Objs { get; }
+        public IMetaRI Role { get; }
+        public ArCommon  Parent { get; }
 
         public ArCommon(object obj, IMetaRI role, ArCommon parent)
         {
-            Obj = obj;
+            if (obj is IMetaObjectInstance meta)
+            {
+                Meta = meta;
+                Type = ArCommonType.MetaObject;
+            }
+            else if (obj is IEnumerable<IMetaObjectInstance> metas)
+            {
+                Metas = metas;
+                Type = ArCommonType.MetaObjects;
+            }
+            else if (obj is Enum en)
+            {
+                Enum = en;
+                Type = ArCommonType.Enum;
+            }
+            else if(obj is IEnumerable<Enum> ens)
+            {
+                Enums = ens;
+                Type = ArCommonType.Enums;
+            }
+            else if (obj is IEnumerable<object> objs)
+            {
+                Objs = objs;
+                Type = ArCommonType.Others;
+            }
+            else
+            {
+                Obj = obj;
+                Type = ArCommonType.Other;
+            }
             Role = role;
             Parent = parent;
-            Type = ArCommonType.Other;
-        }
-
-        public ArCommon(IEnumerable<object> objs, IMetaRI role, ArCommon parent)
-        {
-            Objs = objs;
-            Role = role;
-            Parent = parent;
-            Type = ArCommonType.Others;
         }
 
         public IMetaObjectInstance? TryGetMeta()
@@ -125,6 +114,21 @@ namespace ArxmlEditor.Model
             if ((Type == ArCommonType.MetaObjects) && (Metas != null))
             {
                 return Metas;
+            }
+            throw new Exception("Type is not MetaObjects");
+        }
+
+        public List<ArCommon> GetCommonMetas()
+        {
+            var result = new List<ArCommon>();
+
+            if ((Type == ArCommonType.MetaObjects) && (Metas != null))
+            {
+                foreach (var m in Metas)
+                {
+                    result.Add(new ArCommon(m, Role, this));
+                }
+                return result;
             }
             throw new Exception("Type is not MetaObjects");
         }
@@ -165,6 +169,21 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Enums");
         }
 
+        public List<ArCommon> GetCommonEnums()
+        {
+            var result = new List<ArCommon>();
+
+            if ((Type == ArCommonType.Enums) && (Enums != null))
+            {
+                foreach (var e in Enums)
+                {
+                    result.Add(new ArCommon(e, Role, this));
+                }
+                return result;
+            }
+            throw new Exception("Type is not Enums");
+        }
+
         public object? TryGetObj()
         {
             if (Type == ArCommonType.Other)
@@ -201,9 +220,24 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Others");
         }
 
-        public Dictionary<IMetaRI, ArCommon> GetExistingMember()
+        public List<ArCommon> GetCommonObjs()
         {
-            Dictionary<IMetaRI, ArCommon> result = new();
+            var result = new List<ArCommon>();
+
+            if ((Type == ArCommonType.Others) && (Objs != null))
+            {
+                foreach (var o in Objs)
+                {
+                    result.Add(new ArCommon(o, Role, this));
+                }
+                return result;
+            }
+            throw new Exception("Type is not Others");
+        }
+
+        public List<ArCommon> GetExistingMember()
+        {
+            List<ArCommon> result = new();
             var arObj = TryGetMeta();
 
             if (arObj != null)
@@ -221,22 +255,26 @@ namespace ArxmlEditor.Model
                         {
                             if (arObj.IsSpecified(o.Name))
                             {
-                                result.Add(o, new ArCommon(arObj.GetValue(o.Name), o, this));
+                                result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
                             }
                         }
                         else
                         {
-                            result.Add(o, new ArCommon(arObj.GetValue(o.Name), o, this));
+                            result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
                         }
                     }
                     else if (o.Multiply())
                     {
                         var childObjs = arObj.GetCollectionValueRaw(o.Name);
-                        if (childObjs is IMetaCollectionInstance metaObjs)
+
+                        if (childObjs is IEnumerable<IMetaObjectInstance> metaObjs)
                         {
-                            if (metaObjs.Count > 0)
+                            if (metaObjs is IMetaCollectionInstance collection)
                             {
-                                result.Add(o, new ArCommon(childObjs, o, this));
+                                if (collection.Count > 0)
+                                {
+                                    result.Add(new ArCommon(metaObjs, o, this));
+                                }
                             }
                         }
                     }
@@ -320,7 +358,7 @@ namespace ArxmlEditor.Model
                     var count = c.Count;
                     for (Int32 i = 0; i < count; i++)
                     {
-                        arObj.RemoveObject(role, 0);
+                        RemoveObject(role, 0);
                     }
                 }
             }
@@ -340,7 +378,7 @@ namespace ArxmlEditor.Model
             }
         }
 
-        public void RemoveObject(IMetaRI role, object obj)
+        public void RemoveObject(IMetaRI role, ArCommon c)
         {
             var arObj = TryGetMeta();
 
@@ -352,14 +390,14 @@ namespace ArxmlEditor.Model
                     Int32 index = 0;
                     foreach (var meta in metas2)
                     {
-                        if (meta.Equals(obj))
+                        if (meta.Equals(c.Obj))
                         {
-                            arObj.RemoveObject(role, index);
+                            RemoveObject(role, index);
                             return;
                         }
                         index++;
                     }
-                    throw new Exception($"No {role.Name} member {obj} in {arObj}");
+                    throw new Exception($"No {role.Name} member {c.Obj} in {arObj}");
                 }
             }
         }
@@ -452,7 +490,7 @@ namespace ArxmlEditor.Model
                 }
                 else
                 {
-                    mObj.AddObject(role);
+                    AddObject(role);
                 }
             }
         }
@@ -467,6 +505,57 @@ namespace ArxmlEditor.Model
             var mObj = GetMeta();
 
             mObj.AddNew(role.Name, type);
+        }
+
+        public Type[] RoleTypesFor(string roleName)
+        {
+            if (Type == ArCommonType.MetaObject)
+            {
+                var meta = GetMeta();
+                return meta.RoleTypesFor(roleName);
+            }
+            return Array.Empty<Type>();
+        }
+
+        public override string ToString()
+        {
+            switch (Type)
+            {
+                case ArCommonType.None:
+                    return "None";
+
+                case ArCommonType.MetaObject:
+                    if (Meta is IReferrable refMeta)
+                    {
+                        return refMeta.ShortName;
+                    }
+                    else
+                    {
+                        return Role.Name;
+                    }
+
+                case ArCommonType.MetaObjects:
+                    return $"{Role.Name}(s)";
+
+                case ArCommonType.Enum:
+                    if (Enum != null)
+                    {
+                        return Enum.ToString();
+                    }
+                    return "";
+
+                case ArCommonType.Enums:
+                    return $"{Role.Name}(s)";
+
+                case ArCommonType.Other:
+                    return Obj.ToString();
+
+                case ArCommonType.Others:
+                    return $"{Role.Name}(s)";
+
+                default:
+                    return "";
+            }
         }
     }
 }
