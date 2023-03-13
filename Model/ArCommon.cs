@@ -279,17 +279,6 @@ namespace ArxmlEditor.Model
 
                         if (childObjs is IMetaCollectionInstance collection)
                         {
-                            foreach (var e in collection)
-                            {
-                                if (e is IMetaObjectInstance)
-                                {
-
-                                }
-                                else if (e is Enum)
-                                {
-
-                                }
-                            }
                             if (collection.Count > 0)
                             {
                                 result.Add(new ArCommon(collection, o, this));
