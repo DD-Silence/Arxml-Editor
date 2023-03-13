@@ -16,12 +16,8 @@
  */
 
 using ArxmlEditor.Model;
-using GenTool_CsDataServerDomAsr4.Iface;
-using Meta.Helper;
 using Meta.Iface;
-using System.Collections;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+
 
 namespace ArxmlEditor
 {
@@ -92,10 +88,8 @@ namespace ArxmlEditor
                     nodeCurrent.Tag = (m, false, false);
                     foreach (var e in enums)
                     {
-                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e.ToString()[1..]}: {m.Role.Name}");
+                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Role.Name}");
                         nodeCurrent2.Tag = (e, false, false);
-                        //                            var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Key.Name}");
-                        //                            nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
                     }
                 }
                 else if (m.Type == ArCommonType.Others)
