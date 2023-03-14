@@ -33,89 +33,44 @@ namespace ArxmlEditor
         {
             foreach (var m in arObj.GetExistingMember())
             {
-                if (m.Type == ArCommonType.MetaObjects)
+                if (m.Role != null)
                 {
-                    var mObjs = m.GetCommonMetas();
-                    var nodeCurrent = node.Nodes.Add($"{m}");
-                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m, true, true);
-                    foreach (var mChild in mObjs)
+                    if (m.Type == ArCommonType.MetaObjects)
                     {
-                        TreeNode nodeCurrent2;
-                        if (m.Role.MultipleInterfaceTypes)
+                        var mObjs = m.GetCommonMetas();
+                        var nodeCurrent = node.Nodes.Add($"{m}");
+
+                        nodeCurrent.Tag = (m, true, true);
+                        foreach (var mChild in mObjs)
                         {
-                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
-                            nodeCurrent2.ToolTipText = $"Type: {mChild.Role.InterfaceType.Name[1..]}{Environment.NewLine}" +
-                                                        $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                                        $"Max: {m.Role.Max()}{Environment.NewLine}";
+                            if (mChild.Role != null)
+                            {
+                                TreeNode nodeCurrent2;
+                                if (m.Role.MultipleInterfaceTypes)
+                                {
+                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                                }
+                                else
+                                {
+                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                                }
+                                nodeCurrent2.Tag = (mChild, true, false);
+                                if (first)
+                                {
+                                    ConstructTreeView(mChild, nodeCurrent2, false);
+                                }
+                            }
                         }
-                        else
-                        {
-                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
-                            nodeCurrent2.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
-                                                        $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                                        $"Max: {m.Role.Max()}{Environment.NewLine}";
-                        }
-                        nodeCurrent2.Tag = (mChild, true, false);
+                    }
+                    else if (m.Type == ArCommonType.MetaObject)
+                    {
+                        var nodeCurrent = node.Nodes.Add($"{m}");
+                        nodeCurrent.Tag = (m, true, false);
                         if (first)
                         {
-                            ConstructTreeView(mChild, nodeCurrent2, false);
+                            ConstructTreeView(m, nodeCurrent, false);
                         }
                     }
-                }
-                else if (m.Type == ArCommonType.MetaObject)
-                {
-                    var nodeCurrent = node.Nodes.Add($"{m}");
-                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
-                                                $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                                $"Max: {m.Role.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m, true, false);
-                    if (first)
-                    {
-                        ConstructTreeView(m, nodeCurrent, false);
-                    }
-                }
-                else if (m.Type == ArCommonType.Enums)
-                {
-                    var enums = m.GetEnums();
-
-                    var nodeCurrent = node.Nodes.Add($"{m}");
-                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m, false, false);
-                    foreach (var e in enums)
-                    {
-                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Role.Name}");
-                        nodeCurrent2.Tag = (e, false, false);
-                    }
-                }
-                else if (m.Type == ArCommonType.Others)
-                {
-                    var objs = m.GetCommonObjs();
-                    var nodeCurrent = node.Nodes.Add($"{m}");
-
-                    nodeCurrent.ToolTipText = $"Type: {m.Role.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Role.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Role.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (m, false, false);
-                    foreach (var o in objs)
-                    {
-                        var nodeCurrent2 = nodeCurrent.Nodes.Add($"{o}: {m.Role.Name}");
-                        nodeCurrent2.Tag = (o, false, false);
-                    }
-                }
-                else if (m.Type == ArCommonType.Enum)
-                {
-                    var nodeCurrent = node.Nodes.Add($"{m}: {m.Role.Name}");
-                    nodeCurrent.Tag = (m, false, false);
-                }
-                else if (m.Type == ArCommonType.Other)
-                {
-                    var nodeCurrent = node.Nodes.Add($"{m}: {m.Role.Name}");
-                    nodeCurrent.Tag = (m, false, false);
                 }
             }
         }
@@ -139,26 +94,29 @@ namespace ArxmlEditor
         {
             foreach (var c in common.GetCandidateMember())
             {
-                var toolAdd = container.DropDownItems.Add($"{c.Name}");
-                if (toolAdd is ToolStripDropDownItem dropItem2)
+                if (c.IsMeta())
                 {
-                    if (c.MultipleInterfaceTypes)
+                    var toolAdd = container.DropDownItems.Add($"{c.Name}");
+                    if (toolAdd is ToolStripDropDownItem dropItem2)
                     {
-                        List<ToolStripDropDownItem> items = new();
-                        foreach (var c2 in common.RoleTypesFor(c.Name))
+                        if (c.MultipleInterfaceTypes)
                         {
-                            var item = new ToolStripMenuItem(c2.Name[1..]);
-                            item.Tag = (node, common, c2);
-                            item.Click += DropAddHandler;
-                            items.Add(item);
+                            List<ToolStripDropDownItem> items = new();
+                            foreach (var c2 in common.RoleTypesFor(c.Name))
+                            {
+                                var item = new ToolStripMenuItem(c2.Name[1..]);
+                                item.Tag = (node, common, c2);
+                                item.Click += DropAddHandler;
+                                items.Add(item);
+                            }
+                            dropItem2.DropDownItems.AddRange(items.ToArray());
+                            toolAdd.Tag = (node, common, c);
                         }
-                        dropItem2.DropDownItems.AddRange(items.ToArray());
-                        toolAdd.Tag = (node, common, c);
-                    }
-                    else
-                    {
-                        toolAdd.Tag = (node, common, c);
-                        toolAdd.Click += DropAddHandler;
+                        else
+                        {
+                            toolAdd.Tag = (node, common, c);
+                            toolAdd.Click += DropAddHandler;
+                        }
                     }
                 }
             }
@@ -182,6 +140,13 @@ namespace ArxmlEditor
                             else
                             {
                                 tvContent.LabelEdit = false;
+                            }
+
+                            if (c.Role != null)
+                            {
+                                UpdateBrief($"Type: {c.Role.Name}{Environment.NewLine}" +
+                                        $"Min: {c.Role.Min()}{Environment.NewLine}" +
+                                        $"Max: {c.Role.Max()}{Environment.NewLine}");
                             }
                         }
                     }
@@ -298,29 +263,32 @@ namespace ArxmlEditor
                 {
                     if (nodeSelect2.Tag is (ArCommon c3, bool isMObj, bool isExpand))
                     {
-                        if (c3.Type == ArCommonType.MetaObjects)
+                        if (c3.Role != null)
                         {
-                            c3.Parent.RemoveAllObject(c3.Role);
-                            var p = nodeSelect2.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(c3.Parent, p, true);
-                            p.Expand();
-                        }
-                        else if (obj2.GetType().IsClass)
-                        {
-                            c3.Parent.SetSpecified(c3.Role, false);
-                            var p = nodeSelect2.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(c3.Parent, p, true);
-                            p.Expand();
-                        }
-                        else
-                        {
-                            c3.Parent.RemoveObject(c3.Role, c3);
-                            var p = nodeSelect2.Parent.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(c3.Parent, p, true);
-                            p.Expand();
+                            if (c3.Type == ArCommonType.MetaObjects)
+                            {
+                                c3.Parent.RemoveAllObject(c3.Role);
+                                var p = nodeSelect2.Parent;
+                                p.Nodes.Clear();
+                                ConstructTreeView(c3.Parent, p, true);
+                                p.Expand();
+                            }
+                            else if (obj2.GetType().IsClass)
+                            {
+                                c3.Parent.SetSpecified(c3.Role, false);
+                                var p = nodeSelect2.Parent;
+                                p.Nodes.Clear();
+                                ConstructTreeView(c3.Parent, p, true);
+                                p.Expand();
+                            }
+                            else
+                            {
+                                c3.Parent.RemoveObject(c3.Role, c3);
+                                var p = nodeSelect2.Parent.Parent;
+                                p.Nodes.Clear();
+                                ConstructTreeView(c3.Parent, p, true);
+                                p.Expand();
+                            }
                         }
                     }
                 }
@@ -352,9 +320,23 @@ namespace ArxmlEditor
             }
         }
 
-        private void ConstructContent(IMetaObjectInstance mobj)
+        private void ConstructContent(ArCommon c)
         {
+            foreach (var c2 in c.GetAllMember())
+            {
 
+            }
+        }
+
+        private void UpdateBrief(string brief)
+        {
+            tbBreif.Text = brief;
+        }
+
+        private void UpdateOutput(string message)
+        {
+            tbOutput.Text += Environment.NewLine;
+            tbOutput.Text += message;
         }
     }
 }
