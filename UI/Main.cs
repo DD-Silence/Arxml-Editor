@@ -16,9 +16,8 @@
  */
 
 using ArxmlEditor.Model;
+using ArxmlEditor.UI;
 using Meta.Iface;
-using System.Windows.Forms;
-
 
 namespace ArxmlEditor
 {
@@ -328,7 +327,7 @@ namespace ArxmlEditor
                         var l = new Label
                         {
                             Text = c2.Role.Name,
-                            Width = 100,
+                            Width = 250,
                             Enabled = !c2.IsNull(),
                         };
                         tpContent.Controls.Add(l);
@@ -341,6 +340,27 @@ namespace ArxmlEditor
                         tpContent.Controls.Add(t);
                     }
                 }
+                else if (c2.Type == ArCommonType.Others)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new Label
+                        {
+                            Text = c2.Role.Name,
+                            Width = 250,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(l);
+                        var t = new ContentListView(c2)
+                        {
+                            Text = c2.ToString(),
+                            Width = 250,
+                            Height = 250,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(t);
+                    }
+                }
                 else if (c2.Type == ArCommonType.Enum)
                 {
                     if (c2.Role != null)
@@ -348,7 +368,7 @@ namespace ArxmlEditor
                         var l = new Label
                         {
                             Text = c2.Role.Name,
-                            Width = 150,
+                            Width = 250,
                             Enabled = !c2.IsNull(),
                         };
                         tpContent.Controls.Add(l);
@@ -359,7 +379,28 @@ namespace ArxmlEditor
                             Enabled = !c2.IsNull(),
                             DropDownStyle = ComboBoxStyle.DropDownList,
                         };
-                        t.Items.AddRange(c2.EnumCanditate().ToArray());
+                        t.Items.AddRange(c2.EnumCanditate());
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Enums)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new Label
+                        {
+                            Text = c2.Role.Name,
+                            Width = 250,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(l);
+                        var t = new ContentListView(c2)
+                        {
+                            Text = c2.ToString(),
+                            Width = 250,
+                            Height = 250,
+                            Enabled = !c2.IsNull(),
+                        };
                         tpContent.Controls.Add(t);
                     }
                 }

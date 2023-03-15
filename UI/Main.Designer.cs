@@ -55,9 +55,9 @@
             // 
             tvContent.Dock = DockStyle.Fill;
             tvContent.Location = new Point(0, 0);
-            tvContent.Margin = new Padding(2, 3, 2, 3);
+            tvContent.Margin = new Padding(3, 4, 3, 4);
             tvContent.Name = "tvContent";
-            tvContent.Size = new Size(544, 751);
+            tvContent.Size = new Size(699, 883);
             tvContent.TabIndex = 0;
             tvContent.BeforeExpand += tvContent_BeforeExpand;
             tvContent.MouseClick += tvContent_MouseClick;
@@ -72,7 +72,7 @@
             // 
             scHorizantal1.Dock = DockStyle.Fill;
             scHorizantal1.Location = new Point(0, 0);
-            scHorizantal1.Margin = new Padding(2, 3, 2, 3);
+            scHorizantal1.Margin = new Padding(3, 4, 3, 4);
             scHorizantal1.Name = "scHorizantal1";
             // 
             // scHorizantal1.Panel1
@@ -82,9 +82,8 @@
             // scHorizantal1.Panel2
             // 
             scHorizantal1.Panel2.Controls.Add(tpContent);
-            scHorizantal1.Size = new Size(1230, 751);
-            scHorizantal1.SplitterDistance = 544;
-            scHorizantal1.SplitterWidth = 3;
+            scHorizantal1.Size = new Size(1581, 883);
+            scHorizantal1.SplitterDistance = 699;
             scHorizantal1.TabIndex = 1;
             // 
             // tpContent
@@ -95,18 +94,18 @@
             tpContent.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62.5F));
             tpContent.Dock = DockStyle.Fill;
             tpContent.Location = new Point(0, 0);
-            tpContent.Margin = new Padding(2, 3, 2, 3);
+            tpContent.Margin = new Padding(3, 4, 3, 4);
             tpContent.Name = "tpContent";
             tpContent.RowCount = 1;
             tpContent.RowStyles.Add(new RowStyle());
-            tpContent.Size = new Size(683, 751);
+            tpContent.Size = new Size(878, 883);
             tpContent.TabIndex = 0;
             // 
             // scVertical
             // 
             scVertical.Dock = DockStyle.Fill;
             scVertical.Location = new Point(0, 0);
-            scVertical.Margin = new Padding(2, 3, 2, 3);
+            scVertical.Margin = new Padding(3, 4, 3, 4);
             scVertical.Name = "scVertical";
             scVertical.Orientation = Orientation.Horizontal;
             // 
@@ -117,16 +116,15 @@
             // scVertical.Panel2
             // 
             scVertical.Panel2.Controls.Add(scHorizantal2);
-            scVertical.Size = new Size(1230, 963);
-            scVertical.SplitterDistance = 751;
-            scVertical.SplitterWidth = 3;
+            scVertical.Size = new Size(1581, 1133);
+            scVertical.SplitterDistance = 883;
             scVertical.TabIndex = 2;
             // 
             // scHorizantal2
             // 
             scHorizantal2.Dock = DockStyle.Fill;
             scHorizantal2.Location = new Point(0, 0);
-            scHorizantal2.Margin = new Padding(2, 3, 2, 3);
+            scHorizantal2.Margin = new Padding(3, 4, 3, 4);
             scHorizantal2.Name = "scHorizantal2";
             // 
             // scHorizantal2.Panel1
@@ -136,9 +134,8 @@
             // scHorizantal2.Panel2
             // 
             scHorizantal2.Panel2.Controls.Add(tbOutput);
-            scHorizantal2.Size = new Size(1230, 209);
-            scHorizantal2.SplitterDistance = 388;
-            scHorizantal2.SplitterWidth = 3;
+            scHorizantal2.Size = new Size(1581, 246);
+            scHorizantal2.SplitterDistance = 498;
             scHorizantal2.TabIndex = 0;
             // 
             // tbBreif
@@ -146,10 +143,10 @@
             tbBreif.Dock = DockStyle.Fill;
             tbBreif.Enabled = false;
             tbBreif.Location = new Point(0, 0);
-            tbBreif.Margin = new Padding(2, 3, 2, 3);
+            tbBreif.Margin = new Padding(3, 4, 3, 4);
             tbBreif.Multiline = true;
             tbBreif.Name = "tbBreif";
-            tbBreif.Size = new Size(388, 209);
+            tbBreif.Size = new Size(498, 246);
             tbBreif.TabIndex = 0;
             // 
             // tbOutput
@@ -157,19 +154,19 @@
             tbOutput.Dock = DockStyle.Fill;
             tbOutput.Enabled = false;
             tbOutput.Location = new Point(0, 0);
-            tbOutput.Margin = new Padding(2, 3, 2, 3);
+            tbOutput.Margin = new Padding(3, 4, 3, 4);
             tbOutput.Multiline = true;
             tbOutput.Name = "tbOutput";
-            tbOutput.Size = new Size(839, 209);
+            tbOutput.Size = new Size(1079, 246);
             tbOutput.TabIndex = 0;
             // 
             // Main
             // 
-            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1230, 963);
+            ClientSize = new Size(1581, 1133);
             Controls.Add(scVertical);
-            Margin = new Padding(2, 3, 2, 3);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "Main";
             Text = "ArxmlEditor";
             Load += Main_Load;

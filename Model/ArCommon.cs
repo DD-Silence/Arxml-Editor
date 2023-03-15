@@ -752,7 +752,7 @@ namespace ArxmlEditor.Model
                 case ArCommonType.Enum:
                     if (Enum != null)
                     {
-                        return Enum.ToString();
+                        return Enum.ToString()[1..];
                     }
                     return "";
 
@@ -791,17 +791,19 @@ namespace ArxmlEditor.Model
             return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && (Obj == null) && (Objs == null));
         }
 
-        public List<string> EnumCanditate()
+        public string[] EnumCanditate()
         {
             List<string> result = new();
+
             if (((Type == ArCommonType.Enum) || (Type == ArCommonType.Enums)) && (Role != null))
             {
-                foreach (var v in Enum.GetNames(Role.InterfaceType))
+                foreach (var name in Enum.GetNames(Role.InterfaceType))
                 {
-                    result.Add(v);
+                    result.Add(name[1..]);
                 }
+                return result.ToArray();
             }
-            return result;
+            return Array.Empty<string>();
         }
     }
 }
