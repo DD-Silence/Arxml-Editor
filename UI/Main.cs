@@ -17,6 +17,7 @@
 
 using ArxmlEditor.Model;
 using Meta.Iface;
+using System.Windows.Forms;
 
 
 namespace ArxmlEditor
@@ -40,7 +41,7 @@ namespace ArxmlEditor
                         var mObjs = m.GetCommonMetas();
                         var nodeCurrent = node.Nodes.Add($"{m}");
 
-                        nodeCurrent.Tag = (m, true, true);
+                        nodeCurrent.Tag = (m, true);
                         foreach (var mChild in mObjs)
                         {
                             if (mChild.Role != null)
@@ -54,7 +55,7 @@ namespace ArxmlEditor
                                 {
                                     nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
                                 }
-                                nodeCurrent2.Tag = (mChild, true, false);
+                                nodeCurrent2.Tag = (mChild, false);
                                 if (first)
                                 {
                                     ConstructTreeView(mChild, nodeCurrent2, false);
@@ -65,7 +66,7 @@ namespace ArxmlEditor
                     else if (m.Type == ArCommonType.MetaObject)
                     {
                         var nodeCurrent = node.Nodes.Add($"{m}");
-                        nodeCurrent.Tag = (m, true, false);
+                        nodeCurrent.Tag = (m, false);
                         if (first)
                         {
                             ConstructTreeView(m, nodeCurrent, false);
@@ -84,7 +85,7 @@ namespace ArxmlEditor
             }
             arFile = new ArFile(paths);
             var rootNode = tvContent.Nodes.Add("Autosar");
-            rootNode.Tag = arFile.root;
+            rootNode.Tag = (arFile.root, true);
             tvContent.ShowNodeToolTips = true;
 
             ConstructTreeView(new ArCommon(arFile.root, null, null), rootNode, true);
@@ -104,8 +105,10 @@ namespace ArxmlEditor
                             List<ToolStripDropDownItem> items = new();
                             foreach (var c2 in common.RoleTypesFor(c.Name))
                             {
-                                var item = new ToolStripMenuItem(c2.Name[1..]);
-                                item.Tag = (node, common, c2);
+                                var item = new ToolStripMenuItem(c2.Name[1..])
+                                {
+                                    Tag = (node, common, c2)
+                                };
                                 item.Click += DropAddHandler;
                                 items.Add(item);
                             }
@@ -131,17 +134,9 @@ namespace ArxmlEditor
             {
                 case MouseButtons.Left:
                     {
-                        if (nodeSelect.Tag is (ArCommon c, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                         {
-                            if (true == c.CanEdit())
-                            {
-                                tvContent.LabelEdit = true;
-                            }
-                            else
-                            {
-                                tvContent.LabelEdit = false;
-                            }
-
+                            ConstructContent(c);
                             if (c.Role != null)
                             {
                                 UpdateBrief($"Type: {c.Role.Name}{Environment.NewLine}" +
@@ -155,7 +150,7 @@ namespace ArxmlEditor
                 case MouseButtons.Right:
                     {
                         cmMember.Items.Clear();
-                        if (nodeSelect.Tag is (ArCommon c, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                         {
                             if (c.Type == ArCommonType.MetaObject)
                             {
@@ -222,7 +217,7 @@ namespace ArxmlEditor
                         var mObj = c.GetMeta();
                         mObj.DeleteAndRemoveFromOwner();
 
-                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool isMObj, bool isExpand))
+                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool isExpand))
                         {
                             if (c2.Type == ArCommonType.MetaObjects)
                             {
@@ -244,7 +239,7 @@ namespace ArxmlEditor
                     }
                     else if (c.Type == ArCommonType.Other)
                     {
-                        if (nodeSelect.Tag is (ArCommon c2, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (ArCommon c2, bool isExpand))
                         {
                             if (c2.Type == ArCommonType.MetaObjects)
                             {
@@ -261,7 +256,7 @@ namespace ArxmlEditor
                 }
                 else if (dropItem.Tag is (TreeNode nodeSelect2, object obj2, IMetaRI role2))
                 {
-                    if (nodeSelect2.Tag is (ArCommon c3, bool isMObj, bool isExpand))
+                    if (nodeSelect2.Tag is (ArCommon c3, bool isExpand))
                     {
                         if (c3.Role != null)
                         {
@@ -299,15 +294,15 @@ namespace ArxmlEditor
         {
             if (e.Node is TreeNode nodeSelect)
             {
-                if (nodeSelect.Tag is (ArCommon c, bool isMObj, bool isExpand))
+                if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                 {
-                    if ((!isExpand) && (isMObj) && (c.Type == ArCommonType.MetaObject))
+                    if ((!isExpand) && (c.Type == ArCommonType.MetaObject))
                     {
                         nodeSelect.Nodes.Clear();
                         ConstructTreeView(c, nodeSelect, true);
-                        nodeSelect.Tag = (c, isMObj, true);
+                        nodeSelect.Tag = (c, true);
                     }
-                    else if ((!isExpand) && (isMObj) && (c.Type == ArCommonType.MetaObjects))
+                    else if ((!isExpand) && (c.Type == ArCommonType.MetaObjects))
                     {
                         nodeSelect.Nodes.Clear();
                         var metas = c.GetCommonMetas();
@@ -322,9 +317,52 @@ namespace ArxmlEditor
 
         private void ConstructContent(ArCommon c)
         {
+            tpContent.Controls.Clear();
+
             foreach (var c2 in c.GetAllMember())
             {
-
+                if (c2.Type == ArCommonType.Other)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new Label
+                        {
+                            Text = c2.Role.Name,
+                            Width = 100,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(l);
+                        var t = new TextBox
+                        {
+                            Text = c2.ToString(),
+                            Width = 250,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Enum)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new Label
+                        {
+                            Text = c2.Role.Name,
+                            Width = 150,
+                            Enabled = !c2.IsNull(),
+                        };
+                        tpContent.Controls.Add(l);
+                        var t = new ComboBox()
+                        {
+                            Text = c2.ToString(),
+                            Width = 250,
+                            Enabled = !c2.IsNull(),
+                            DropDownStyle = ComboBoxStyle.DropDownList,
+                        };
+                        t.Items.AddRange(c2.EnumCanditate().ToArray());
+                        tpContent.Controls.Add(t);
+                    }
+                }
             }
         }
 

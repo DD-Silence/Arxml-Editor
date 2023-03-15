@@ -44,115 +44,140 @@ namespace ArxmlEditor.Model
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
 
-        public ArCommon(object obj, IMetaRI? role, ArCommon? parent)
+        public ArCommon(object? obj, IMetaRI? role, ArCommon? parent)
         {
-            if (obj is IMetaObjectInstance meta)
+            if (obj == null)
             {
-                if (role == null)
+                if (role != null)
                 {
-                    Meta = meta;
-                    Type = ArCommonType.MetaObject;
-                }
-                else if (role.IsMeta())
-                {
-                    Meta = meta;
-                    Type = ArCommonType.MetaObject;
-                }
-                else
-                {
-                    throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
-                }
-            }
-            else if (obj is IEnumerable<IMetaObjectInstance> metas)
-            {
-                if (role == null)
-                {
-                    Metas = metas;
-                    Type = ArCommonType.MetaObjects;
-                }
-                else if (role.IsMeta())
-                {
-                    Metas = metas;
-                    Type = ArCommonType.MetaObjects;
-                }
-                else
-                {
-                    throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
-                }
-            }
-            else if (obj is Enum en)
-            {
-                if (role == null)
-                {
-                    Enum = en;
-                    Type = ArCommonType.Enum;
-                }
-                else if (role.IsEnum())
-                {
-                    Enum = en;
-                    Type = ArCommonType.Enum;
-                }
-                else
-                {
-                    throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
-                }
-            }
-            else if (obj.GetType().Name.EndsWith("EnumList"))
-            {
-                if (obj is IMetaCollectionInstance ens)
-                {
-                    if (role == null)
+                    if (role.IsMeta())
                     {
-                        Enums = ens;
-                        Type = ArCommonType.Enums;
+                        Type = ArCommonType.MetaObject;
                     }
                     else if (role.IsEnum())
                     {
-                        Enums = ens;
-                        Type = ArCommonType.Enums;
+                        Type = ArCommonType.Enum;
+                    }
+                    else
+                    {
+                        Type = ArCommonType.Other;
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException($"ArCommon initialization fail, obj and role are all null");
+                }
+            }
+            else
+            {
+                if (obj is IMetaObjectInstance meta)
+                {
+                    if (role == null)
+                    {
+                        Meta = meta;
+                        Type = ArCommonType.MetaObject;
+                    }
+                    else if (role.IsMeta())
+                    {
+                        Meta = meta;
+                        Type = ArCommonType.MetaObject;
                     }
                     else
                     {
                         throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
                     }
                 }
+                else if (obj is IEnumerable<IMetaObjectInstance> metas)
+                {
+                    if (role == null)
+                    {
+                        Metas = metas;
+                        Type = ArCommonType.MetaObjects;
+                    }
+                    else if (role.IsMeta())
+                    {
+                        Metas = metas;
+                        Type = ArCommonType.MetaObjects;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
+                    }
+                }
+                else if (obj is Enum en)
+                {
+                    if (role == null)
+                    {
+                        Enum = en;
+                        Type = ArCommonType.Enum;
+                    }
+                    else if (role.IsEnum())
+                    {
+                        Enum = en;
+                        Type = ArCommonType.Enum;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
+                    }
+                }
+                else if (obj.GetType().Name.EndsWith("EnumList"))
+                {
+                    if (obj is IMetaCollectionInstance ens)
+                    {
+                        if (role == null)
+                        {
+                            Enums = ens;
+                            Type = ArCommonType.Enums;
+                        }
+                        else if (role.IsEnum())
+                        {
+                            Enums = ens;
+                            Type = ArCommonType.Enums;
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    }
+                }
+                else if (obj is IEnumerable<object> objs)
+                {
+                    if (role == null)
+                    {
+                        Objs = objs;
+                        Type = ArCommonType.Others;
+                    }
+                    else if (role.IsOther())
+                    {
+                        Objs = objs;
+                        Type = ArCommonType.Others;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    }
+                }
                 else
                 {
-                    throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
-                }
-            }
-            else if (obj is IEnumerable<object> objs)
-            {
-                if (role == null)
-                {
-                    Objs = objs;
-                    Type = ArCommonType.Others;
-                }
-                else if (role.IsOther())
-                {
-                    Objs = objs;
-                    Type = ArCommonType.Others;
-                }
-                else
-                {
-                    throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
-                }
-            }
-            else
-            {
-                if (role == null)
-                {
-                    Obj = obj;
-                    Type = ArCommonType.Other;
-                }
-                else if (role.IsOther())
-                {
-                    Obj = obj;
-                    Type = ArCommonType.Other;
-                }
-                else
-                {
-                    throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    if (role == null)
+                    {
+                        Obj = obj;
+                        Type = ArCommonType.Other;
+                    }
+                    else if (role.IsOther())
+                    {
+                        Obj = obj;
+                        Type = ArCommonType.Other;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    }
                 }
             }
 
@@ -422,7 +447,21 @@ namespace ArxmlEditor.Model
 
                     if (o.Single())
                     {
-                        result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                        if (o.Option())
+                        {
+                            if (arObj.IsSpecified(o.Name))
+                            {
+                                result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                            }
+                            else
+                            {
+                                result.Add(new ArCommon(null, o, this));
+                            }
+                        }
+                        else
+                        {
+                            result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                        }
                     }
                     else if (o.Multiply())
                     {
@@ -745,6 +784,24 @@ namespace ArxmlEditor.Model
                 default:
                     return "";
             }
+        }
+
+        public bool IsNull()
+        {
+            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && (Obj == null) && (Objs == null));
+        }
+
+        public List<string> EnumCanditate()
+        {
+            List<string> result = new();
+            if (((Type == ArCommonType.Enum) || (Type == ArCommonType.Enums)) && (Role != null))
+            {
+                foreach (var v in Enum.GetNames(Role.InterfaceType))
+                {
+                    result.Add(v);
+                }
+            }
+            return result;
         }
     }
 }
