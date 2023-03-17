@@ -324,12 +324,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new Label
-                        {
-                            Text = c2.Role.Name,
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var l = new ContentLabel(c2);
                         tpContent.Controls.Add(l);
                         var t = new TextBox
                         {
@@ -344,20 +339,9 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new Label
-                        {
-                            Text = c2.Role.Name,
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var l = new ContentLabel(c2);
                         tpContent.Controls.Add(l);
-                        var t = new ContentListView(c2)
-                        {
-                            Text = c2.ToString(),
-                            Width = 250,
-                            Height = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var t = new ContentListView(c2);
                         tpContent.Controls.Add(t);
                     }
                 }
@@ -365,21 +349,9 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new Label
-                        {
-                            Text = c2.Role.Name,
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var l = new ContentLabel(c2);
                         tpContent.Controls.Add(l);
-                        var t = new ComboBox()
-                        {
-                            Text = c2.ToString(),
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                            DropDownStyle = ComboBoxStyle.DropDownList,
-                        };
-                        t.Items.AddRange(c2.EnumCanditate());
+                        var t = new ContentComboBox(c2);
                         tpContent.Controls.Add(t);
                     }
                 }
@@ -387,20 +359,9 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new Label
-                        {
-                            Text = c2.Role.Name,
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var l = new ContentLabel(c2);
                         tpContent.Controls.Add(l);
-                        var t = new ContentListView(c2)
-                        {
-                            Text = c2.ToString(),
-                            Width = 250,
-                            Height = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var t = new ContentListView(c2);
                         tpContent.Controls.Add(t);
                     }
                 }

@@ -1,45 +1,43 @@
 ﻿using ArxmlEditor.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ArxmlEditor.UI
 {
     internal class ContentListView : ListView
     {
-        private ComboBox? cbCandidate;
+        private ContentComboBox? cbCandidate;
 
-        public ContentListView(ArCommon c)
+        public ContentListView(ArCommon common)
         {
-            Tag = c;
+            Tag = common;
             View = View.Details;
             FullRowSelect = true;
             GridLines = true;
             LabelEdit = true;
+            Width = 250;
+            Height = 250;
+            Enabled = !common.IsNull();
             MouseClick += ContentListView_MouseClick;
 
-            if (c.Role != null)
+            if (common.Role != null)
             {
-                if (c.Type == ArCommonType.Others)
+                if (common.Type == ArCommonType.Others)
                 {
-                    Columns.Add(c.Role.Name, 200, HorizontalAlignment.Left);
-                    var commons = c.GetCommonObjs();
+                    Columns.Add(common.Role.Name, 200, HorizontalAlignment.Left);
+                    var commons = common.GetCommonObjs();
                     foreach (var co in commons)
                     {
                         Items.Add(co.ToString());
                     }
                 }
-                else if(c.Type == ArCommonType.Enums)
+                else if(common.Type == ArCommonType.Enums)
                 {
-                    cbCandidate = new ComboBox
+                    cbCandidate = new ContentComboBox(common)
                     {
                         Visible = false
                     };
                     Controls.Add(cbCandidate);
-                    Columns.Add(c.Role.Name, 200, HorizontalAlignment.Left);
-                    var commons = c.GetCommonEnums();
+                    Columns.Add(common.Role.Name, 200, HorizontalAlignment.Left);
+                    var commons = common.GetCommonEnums();
                     foreach (var co in commons)
                     {
                         cbCandidate.Items.Add(co.ToString());
@@ -59,6 +57,7 @@ namespace ArxmlEditor.UI
                 {
                     if (cbCandidate != null)
                     {
+                        cbCandidate.IndexSet(lvItem.Index);
                         cbCandidate.Bounds = lvItem.Bounds;
                         cbCandidate.Visible = true;
                         cbCandidate.BringToFront();

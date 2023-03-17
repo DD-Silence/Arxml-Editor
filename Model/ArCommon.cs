@@ -15,9 +15,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using GenTool_CsDataServerAsrBase;
 using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
+using System;
 using System.Data;
 
 namespace ArxmlEditor.Model
@@ -37,7 +39,7 @@ namespace ArxmlEditor.Model
         public ArCommonType Type { get; }
         public IMetaObjectInstance? Meta { get; }
         public IEnumerable<IMetaObjectInstance>? Metas { get; }
-        public Enum? Enum { get; }
+        public Enum? Enum { get; private set; }
         public IMetaCollectionInstance? Enums { get; }
         public object? Obj { get; }
         public IEnumerable<object>? Objs { get; }
@@ -262,6 +264,23 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Enum");
         }
 
+        public string? GetEnumName()
+        {
+            if ((Type == ArCommonType.Enum) && (Enum != null))
+            {
+                if (Role != null)
+                {
+                    var result =  Enum.GetName(Role.InterfaceType, Enum);
+                    if (result != null)
+                    {
+                        return result[1..];
+                    }
+                }
+                return null;
+            }
+            throw new Exception("Type is not Enum");
+        }
+
         public IMetaCollectionInstance? TryGetEnums()
         {
             if (Type == ArCommonType.Enums)
@@ -291,6 +310,31 @@ namespace ArxmlEditor.Model
                     result.Add(new ArCommon(e, Role, this));
                 }
                 return result;
+            }
+            throw new Exception("Type is not Enums");
+        }
+
+        public string? GetEnumsName(int index)
+        {
+            if ((Type == ArCommonType.Enums) && (Enums != null))
+            {
+                if ((Role != null) && (index < Enums.Count))
+                {
+                    int count = 0;
+                    foreach (var e in Enums)
+                    {
+                        if (count == index)
+                        {
+                            var result = Enum.GetName(Role.InterfaceType, e);
+                            if (result != null)
+                            {
+                                return result[1..];
+                            }
+                        }
+                        count++;
+                    }
+                }
+                return null;
             }
             throw new Exception("Type is not Enums");
         }
@@ -511,18 +555,26 @@ namespace ArxmlEditor.Model
             }
         }
 
-        private object? AddObject(IMetaRI role)
+        private object? AddObject(IMetaRI role, object? obj=null)
         {
             var arObj = TryGetMeta();
 
             if (arObj != null)
             {
+                object? objAdd;
                 var method = arObj.GetType().GetMethod($"Add{role.Name}");
-                var newObj = Activator.CreateInstance(role.InterfaceType);
-                if ((method != null) && (newObj != null))
+                if (obj == null)
                 {
-                    method.Invoke(arObj, new object[] { newObj });
-                    return newObj;
+                    objAdd = Activator.CreateInstance(role.InterfaceType);
+                }
+                else
+                {
+                    objAdd = obj;
+                }
+                if ((method != null) && (objAdd != null))
+                {
+                    method.Invoke(arObj, new object[] { objAdd });
+                    return objAdd;
                 }
             }
             return null;
@@ -804,6 +856,58 @@ namespace ArxmlEditor.Model
                 return result.ToArray();
             }
             return Array.Empty<string>();
+        }
+
+        public void SetEnum(string name)
+        {
+            if ((Type == ArCommonType.Enum) && (Role != null))
+            {
+                Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
+                if (Parent.Type == ArCommonType.MetaObject)
+                {
+                    Parent.GetMeta().SetValue(Role.Name, Enum);
+                }
+            }
+        }
+
+        public void SetEnums(int index, string name)
+        {
+            if ((Type == ArCommonType.Enums) && (Role != null) && (Enums != null))
+            {
+                if ((index >= 0) && (index < Enums.Count))
+                {
+                    List<Enum> results = new();
+                    int count = 0;
+                    foreach (var e in Enums)
+                    {
+                        if (e is Enum ee)
+                        {
+                            if (count == index)
+                            {
+                                var newE = Enum.Parse(Role.InterfaceType, $"e{name}", true);
+                                if (newE is Enum newEE)
+                                {
+                                    results.Add(newEE);
+                                }
+                                else
+                                {
+                                    results.Add(ee);
+                                }
+                            }
+                            else
+                            {
+                                results.Add(ee);
+                            }
+                        }
+                        count++;
+                    }
+                    Parent.RemoveAllObject(Role);
+                    foreach (var e in results)
+                    {
+                        Parent.AddObject(Role, e);
+                    }
+                }
+            }
         }
     }
 }
