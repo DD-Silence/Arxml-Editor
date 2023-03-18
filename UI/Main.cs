@@ -138,9 +138,7 @@ namespace ArxmlEditor
                             ConstructContent(c);
                             if (c.Role != null)
                             {
-                                UpdateBrief($"Type: {c.Role.Name}{Environment.NewLine}" +
-                                        $"Min: {c.Role.Min()}{Environment.NewLine}" +
-                                        $"Max: {c.Role.Max()}{Environment.NewLine}");
+                                UpdateBrief(c.GetDesc());
                             }
                         }
                     }
@@ -326,12 +324,7 @@ namespace ArxmlEditor
                     {
                         var l = new ContentLabel(c2);
                         tpContent.Controls.Add(l);
-                        var t = new TextBox
-                        {
-                            Text = c2.ToString(),
-                            Width = 250,
-                            Enabled = !c2.IsNull(),
-                        };
+                        var t = new ContentTextBox(c2);
                         tpContent.Controls.Add(t);
                     }
                 }
@@ -371,6 +364,11 @@ namespace ArxmlEditor
         private void UpdateBrief(string brief)
         {
             tbBreif.Text = brief;
+        }
+
+        private void AddBrief(string brief)
+        {
+            tbBreif.Text += brief;
         }
 
         private void UpdateOutput(string message)

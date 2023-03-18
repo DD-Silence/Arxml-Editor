@@ -141,22 +141,22 @@
             // tbBreif
             // 
             tbBreif.Dock = DockStyle.Fill;
-            tbBreif.Enabled = false;
             tbBreif.Location = new Point(0, 0);
             tbBreif.Margin = new Padding(3, 4, 3, 4);
             tbBreif.Multiline = true;
             tbBreif.Name = "tbBreif";
+            tbBreif.ReadOnly = true;
             tbBreif.Size = new Size(498, 246);
             tbBreif.TabIndex = 0;
             // 
             // tbOutput
             // 
             tbOutput.Dock = DockStyle.Fill;
-            tbOutput.Enabled = false;
             tbOutput.Location = new Point(0, 0);
             tbOutput.Margin = new Padding(3, 4, 3, 4);
             tbOutput.Multiline = true;
             tbOutput.Name = "tbOutput";
+            tbOutput.ReadOnly = true;
             tbOutput.Size = new Size(1079, 246);
             tbOutput.TabIndex = 0;
             // 

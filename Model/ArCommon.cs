@@ -862,10 +862,21 @@ namespace ArxmlEditor.Model
         {
             if ((Type == ArCommonType.Enum) && (Role != null))
             {
-                Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
-                if (Parent.Type == ArCommonType.MetaObject)
+                try
                 {
-                    Parent.GetMeta().SetValue(Role.Name, Enum);
+                    Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
+                    if (Parent.Type == ArCommonType.MetaObject)
+                    {
+                        Parent.GetMeta().SetValue(Role.Name, Enum);
+                    }
+                }
+                catch
+                {
+                    Enum = Enum.Parse(Role.InterfaceType, $"t{name}", true) as Enum;
+                    if (Parent.Type == ArCommonType.MetaObject)
+                    {
+                        Parent.GetMeta().SetValue(Role.Name, Enum);
+                    }
                 }
             }
         }
@@ -908,6 +919,77 @@ namespace ArxmlEditor.Model
                     }
                 }
             }
+        }
+
+        public void SetOther(object newValue)
+        {
+            if ((Type == ArCommonType.Other) && (Role != null))
+            {
+                if (Parent.Type == ArCommonType.MetaObject)
+                {
+                    Parent.GetMeta().SetValue(Role.Name, newValue);
+                }
+            }
+        }
+
+        private string GetRoleArDocument()
+        {
+            string result = "";
+
+            if (Role != null)
+            {
+                foreach (var d in Role.InterfaceType.GetCustomAttributesData())
+                {
+                    if (d.AttributeType.Name == "AutosarDocumentationAttribute")
+                    {
+                        if (d.ConstructorArguments.Count > 0)
+                        {
+                            result += $"{d.ConstructorArguments[0]}{Environment.NewLine}";
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        private string GetMetaArDocument()
+        {
+            string result = "";
+
+            if ((Type == ArCommonType.MetaObject) && (Meta != null))
+            {
+                result += $"Internal Type: {Meta.InterfaceType.Name[1..]}{Environment.NewLine}";
+                foreach (var d in Meta.InterfaceType.GetCustomAttributesData())
+                {
+                    if (d.AttributeType.Name == "AutosarDocumentationAttribute")
+                    {
+                        if (d.ConstructorArguments.Count > 0)
+                        {
+                            result += $"Desc: {d.ConstructorArguments[0]}{Environment.NewLine}";
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public string GetDesc()
+        {
+            string result = "";
+
+            if (Role != null)
+            {
+                result += $"Type: {Role.Name}{Environment.NewLine}";
+                result += $"Min: {Role.Min()}{Environment.NewLine}";
+                result += $"Max: {Role.Max()}{Environment.NewLine}";
+                result += $"Desc: {GetRoleArDocument()}{Environment.NewLine}";
+
+                if (Role.MultipleInterfaceTypes)
+                {
+                    result += GetMetaArDocument();
+                }
+            }
+            return result;
         }
     }
 }
