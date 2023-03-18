@@ -167,7 +167,7 @@ namespace ArxmlEditor
                             {
                                 var itemDel = cmMember.Items.Add("Del");
                                 itemDel.Click += DropDelHandler;
-                                itemDel.Tag = c;
+                                itemDel.Tag = (nodeSelect, c);
                             }
                         }
                         cmMember.Show(tvContent, new Point(e.X, e.Y));
@@ -207,81 +207,34 @@ namespace ArxmlEditor
         {
             if (sender is ToolStripDropDownItem dropItem)
             {
-                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c, IMetaRI role))
+                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c))
                 {
+                    var parentNode = nodeSelect.Parent;
+                    var parentCommon = c.Parent;
+
                     if (c.Type == ArCommonType.MetaObject)
                     {
-                        var mObj = c.GetMeta();
-                        mObj.DeleteAndRemoveFromOwner();
-
+                        var meta = c.GetMeta();
+                        meta.DeleteAndRemoveFromOwner();
+                        nodeSelect.Remove();
+                    }
+                    else if ((c.Type == ArCommonType.MetaObjects) && (c.Role != null))
+                    {
                         if (nodeSelect.Parent.Tag is (ArCommon c2, bool isExpand))
                         {
-                            if (c2.Type == ArCommonType.MetaObjects)
+                            if (c2.Type == ArCommonType.MetaObject)
                             {
-                                var mObjs = c2.GetMetas();
-                                if (mObjs.Count() == 0)
-                                {
-                                    nodeSelect.Parent.Remove();
-                                }
-                                else
-                                {
-                                    nodeSelect.Remove();
-                                }
-                            }
-                            else
-                            {
+                                c2.RemoveAllObject(c.Role);
                                 nodeSelect.Remove();
                             }
                         }
                     }
-                    else if (c.Type == ArCommonType.Other)
-                    {
-                        if (nodeSelect.Tag is (ArCommon c2, bool isExpand))
-                        {
-                            if (c2.Type == ArCommonType.MetaObjects)
-                            {
-                                var metas = c2.GetMetas();
 
-                                c.RemoveAllObject(role);
-                                var p = nodeSelect.Parent;
-                                p.Nodes.Clear();
-                                ConstructTreeView(c2, p, true);
-                                p.Expand();
-                            }
-                        }
-                    }
-                }
-                else if (dropItem.Tag is (TreeNode nodeSelect2, object obj2, IMetaRI role2))
-                {
-                    if (nodeSelect2.Tag is (ArCommon c3, bool isExpand))
+                    while (parentCommon.Empty())
                     {
-                        if (c3.Role != null)
-                        {
-                            if (c3.Type == ArCommonType.MetaObjects)
-                            {
-                                c3.Parent.RemoveAllObject(c3.Role);
-                                var p = nodeSelect2.Parent;
-                                p.Nodes.Clear();
-                                ConstructTreeView(c3.Parent, p, true);
-                                p.Expand();
-                            }
-                            else if (obj2.GetType().IsClass)
-                            {
-                                c3.Parent.SetSpecified(c3.Role, false);
-                                var p = nodeSelect2.Parent;
-                                p.Nodes.Clear();
-                                ConstructTreeView(c3.Parent, p, true);
-                                p.Expand();
-                            }
-                            else
-                            {
-                                c3.Parent.RemoveObject(c3.Role, c3);
-                                var p = nodeSelect2.Parent.Parent;
-                                p.Nodes.Clear();
-                                ConstructTreeView(c3.Parent, p, true);
-                                p.Expand();
-                            }
-                        }
+                        parentNode.Remove();
+                        parentCommon = parentCommon.Parent;
+                        parentNode = parentNode.Parent;
                     }
                 }
             }

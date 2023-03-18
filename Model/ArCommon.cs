@@ -991,5 +991,26 @@ namespace ArxmlEditor.Model
             }
             return result;
         }
+
+        public bool Empty()
+        {
+            bool result = true;
+
+            if (Type == ArCommonType.MetaObject)
+            {
+                if (GetCandidateMember().Count != 0)
+                {
+                    result = false;
+                }
+            }
+            else if ((Type == ArCommonType.MetaObjects) & (Metas != null))
+            {
+                if (Metas.Count() > 0)
+                {
+                    result = false;
+                }
+            }
+            return result;
+        }
     }
 }
