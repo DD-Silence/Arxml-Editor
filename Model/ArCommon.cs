@@ -21,14 +21,15 @@ using Meta.Helper;
 using Meta.Iface;
 using System;
 using System.Data;
+using System.Reflection;
 
 namespace ArxmlEditor.Model
 {
     public enum ArCommonType
     {
         None = 0,
-        MetaObject,
-        MetaObjects,
+        Meta,
+        Metas,
         Enum,
         Enums,
         Bool,
@@ -56,7 +57,7 @@ namespace ArxmlEditor.Model
                 {
                     if (role.IsMeta())
                     {
-                        Type = ArCommonType.MetaObject;
+                        Type = ArCommonType.Meta;
                     }
                     else if (role.IsEnum())
                     {
@@ -79,12 +80,12 @@ namespace ArxmlEditor.Model
                     if (role == null)
                     {
                         Meta = meta;
-                        Type = ArCommonType.MetaObject;
+                        Type = ArCommonType.Meta;
                     }
                     else if (role.IsMeta())
                     {
                         Meta = meta;
-                        Type = ArCommonType.MetaObject;
+                        Type = ArCommonType.Meta;
                     }
                     else
                     {
@@ -96,12 +97,12 @@ namespace ArxmlEditor.Model
                     if (role == null)
                     {
                         Metas = metas;
-                        Type = ArCommonType.MetaObjects;
+                        Type = ArCommonType.Metas;
                     }
                     else if (role.IsMeta())
                     {
                         Metas = metas;
-                        Type = ArCommonType.MetaObjects;
+                        Type = ArCommonType.Metas;
                     }
                     else
                     {
@@ -216,7 +217,7 @@ namespace ArxmlEditor.Model
 
         public IMetaObjectInstance? TryGetMeta()
         {
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 return Meta;
             }
@@ -225,7 +226,7 @@ namespace ArxmlEditor.Model
 
         public IMetaObjectInstance GetMeta()
         {
-            if ((Type == ArCommonType.MetaObject) && (Meta != null))
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
                 return Meta;
             }
@@ -234,7 +235,7 @@ namespace ArxmlEditor.Model
 
         public IEnumerable<IMetaObjectInstance>? TryGetMetas()
         {
-            if (Type == ArCommonType.MetaObjects)
+            if (Type == ArCommonType.Metas)
             {
                 return Metas;
             }
@@ -243,7 +244,7 @@ namespace ArxmlEditor.Model
 
         public IEnumerable<IMetaObjectInstance> GetMetas()
         {
-            if ((Type == ArCommonType.MetaObjects) && (Metas != null))
+            if ((Type == ArCommonType.Metas) && (Metas != null))
             {
                 return Metas;
             }
@@ -254,7 +255,7 @@ namespace ArxmlEditor.Model
         {
             var result = new List<ArCommon>();
 
-            if ((Type == ArCommonType.MetaObjects) && (Metas != null))
+            if ((Type == ArCommonType.Metas) && (Metas != null))
             {
                 foreach (var m in Metas)
                 {
@@ -430,7 +431,7 @@ namespace ArxmlEditor.Model
         {
             List<ArCommon> result = new();
 
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
@@ -475,7 +476,7 @@ namespace ArxmlEditor.Model
         {
             List<IMetaRI> result = new();
 
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
@@ -515,7 +516,7 @@ namespace ArxmlEditor.Model
         {
             List<ArCommon> result = new();
 
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
@@ -559,7 +560,7 @@ namespace ArxmlEditor.Model
 
         public void Check()
         {
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var arObj = GetMeta();
                 foreach (var o in arObj.MetaAllRoles)
@@ -648,10 +649,7 @@ namespace ArxmlEditor.Model
             if (arObj != null)
             {
                 var method = arObj.GetType().GetMethod($"Remove{role.Name}");
-                if (method != null)
-                {
-                    method.Invoke(arObj, new object[] { index });
-                }
+                method?.Invoke(arObj, new object[] { index });
             }
         }
 
@@ -681,7 +679,7 @@ namespace ArxmlEditor.Model
 
         public void SetSpecified(IMetaRI role, bool isSpecifed)
         {
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var mObj = GetMeta();
                 mObj.SetSpecified(role.Name, isSpecifed);
@@ -695,10 +693,7 @@ namespace ArxmlEditor.Model
             if (arObj != null)
             {
                 var method = arObj.GetType().GetMethod($"{role.Name}Specified");
-                if (method != null)
-                {
-                    method.Invoke(arObj, new object[] { isSpecifed });
-                }
+                method?.Invoke(arObj, new object[] { isSpecifed });
             }
         }
 
@@ -706,7 +701,7 @@ namespace ArxmlEditor.Model
         {
             if (Role != null)
             {
-                if (Type == ArCommonType.MetaObject)
+                if (Type == ArCommonType.Meta)
                 {
                     var mObj = GetMeta();
 
@@ -749,7 +744,7 @@ namespace ArxmlEditor.Model
 
         public ArCommon? Add(IMetaRI role, Type? type = null)
         {
-            if (Type != ArCommonType.MetaObject)
+            if (Type != ArCommonType.Meta)
             {
                 return null;
             }
@@ -801,7 +796,7 @@ namespace ArxmlEditor.Model
 
         public Type[] RoleTypesFor(string roleName)
         {
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 var meta = GetMeta();
                 return meta.RoleTypesFor(roleName);
@@ -816,7 +811,7 @@ namespace ArxmlEditor.Model
                 case ArCommonType.None:
                     return "None";
 
-                case ArCommonType.MetaObject:
+                case ArCommonType.Meta:
                     if (Role != null)
                     {
                         if (Meta is IReferrable refMeta)
@@ -830,7 +825,7 @@ namespace ArxmlEditor.Model
                     }
                     return "";
 
-                case ArCommonType.MetaObjects:
+                case ArCommonType.Metas:
                     if (Role != null)
                     {
                         return $"{Role.Name}(s)";
@@ -901,7 +896,7 @@ namespace ArxmlEditor.Model
                 try
                 {
                     Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
-                    if (Parent.Type == ArCommonType.MetaObject)
+                    if (Parent.Type == ArCommonType.Meta)
                     {
                         Parent.GetMeta().SetValue(Role.Name, Enum);
                     }
@@ -909,7 +904,7 @@ namespace ArxmlEditor.Model
                 catch
                 {
                     Enum = Enum.Parse(Role.InterfaceType, $"t{name}", true) as Enum;
-                    if (Parent.Type == ArCommonType.MetaObject)
+                    if (Parent.Type == ArCommonType.Meta)
                     {
                         Parent.GetMeta().SetValue(Role.Name, Enum);
                     }
@@ -961,7 +956,7 @@ namespace ArxmlEditor.Model
         {
             if ((Type == ArCommonType.Bool) && (Role != null))
             {
-                if (Parent.Type == ArCommonType.MetaObject)
+                if (Parent.Type == ArCommonType.Meta)
                 {
                     Parent.GetMeta().SetValue(Role.Name, newValue);
                 }
@@ -972,14 +967,14 @@ namespace ArxmlEditor.Model
         {
             if ((Type == ArCommonType.Other) && (Role != null))
             {
-                if (Parent.Type == ArCommonType.MetaObject)
+                if (Parent.Type == ArCommonType.Meta)
                 {
                     Parent.GetMeta().SetValue(Role.Name, newValue);
                 }
             }
         }
 
-        private string GetRoleArDocument()
+        private string GetRoleTypeArDocument()
         {
             string result = "";
 
@@ -996,6 +991,11 @@ namespace ArxmlEditor.Model
                     }
                 }
             }
+
+            if (result == "")
+            {
+                result = Environment.NewLine;
+            }
             return result;
         }
 
@@ -1003,16 +1003,77 @@ namespace ArxmlEditor.Model
         {
             string result = "";
 
-            if ((Type == ArCommonType.MetaObject) && (Meta != null))
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
                 result += $"Internal Type: {Meta.InterfaceType.Name[1..]}{Environment.NewLine}";
                 foreach (var d in Meta.InterfaceType.GetCustomAttributesData())
                 {
                     if (d.AttributeType.Name == "AutosarDocumentationAttribute")
                     {
-                        if (d.ConstructorArguments.Count > 0)
+                        foreach (var a in d.ConstructorArguments)
                         {
-                            result += $"Desc: {d.ConstructorArguments[0]}{Environment.NewLine}";
+                            result += $"Desc: {a}{Environment.NewLine}";
+                        }
+                    }
+                }
+
+                foreach (var d in Meta.InterfaceType.GetCustomAttributesData())
+                {
+                    if (d.AttributeType.Name == "PrimitiveConstraintsAttribute")
+                    {
+                        foreach (var a in d.ConstructorArguments)
+                        {
+                            result += $"Constraint: {a}{Environment.NewLine}";
+                        }
+                    }
+                }
+            }
+
+            if (result == "")
+            {
+                result = Environment.NewLine;
+            }
+            return result;
+        }
+
+        private string GetRoleArDocument()
+        {
+            var result = "";
+
+            if (Role != null)
+            {
+                if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
+                {
+                    foreach (var i in Parent.Meta.InterfaceType.GetTypeInfo().ImplementedInterfaces)
+                    {
+                        var members = i.GetMember(Role.Name);
+                        if (members.Length > 0)
+                        {
+                            foreach (var m in members)
+                            {
+                                foreach (var d in m.GetCustomAttributesData())
+                                {
+                                    if (d.AttributeType.Name == "AutosarDocumentationAttribute")
+                                    {
+                                        foreach (var a in d.ConstructorArguments)
+                                        {
+                                            result += $"RoleDesc: {a}{Environment.NewLine}";
+                                        }
+                                    }
+                                }
+
+                                foreach (var d in m.GetCustomAttributesData())
+                                {
+                                    if (d.AttributeType.Name == "PrimitiveConstraintsAttribute")
+                                    {
+                                        foreach (var a in d.ConstructorArguments)
+                                        {
+                                            result += $"Constraint: {a}{Environment.NewLine}";
+                                        }
+                                    }
+                                }
+                            }
+                            break;
                         }
                     }
                 }
@@ -1029,12 +1090,13 @@ namespace ArxmlEditor.Model
                 result += $"Type: {Role.Name}{Environment.NewLine}";
                 result += $"Min: {Role.Min()}{Environment.NewLine}";
                 result += $"Max: {Role.Max()}{Environment.NewLine}";
-                result += $"Desc: {GetRoleArDocument()}{Environment.NewLine}";
+                result += $"Desc: {GetRoleTypeArDocument()}{Environment.NewLine}";
 
                 if (Role.MultipleInterfaceTypes)
                 {
                     result += GetMetaArDocument();
                 }
+                result += GetRoleArDocument();
             }
             return result;
         }
@@ -1043,16 +1105,16 @@ namespace ArxmlEditor.Model
         {
             bool result = true;
 
-            if (Type == ArCommonType.MetaObject)
+            if (Type == ArCommonType.Meta)
             {
                 if (GetCandidateMember().Count != 0)
                 {
                     result = false;
                 }
             }
-            else if ((Type == ArCommonType.MetaObjects) & (Metas != null))
+            else if ((Type == ArCommonType.Metas) && (Metas != null))
             {
-                if (Metas.Count() > 0)
+                if (Metas.Any())
                 {
                     result = false;
                 }

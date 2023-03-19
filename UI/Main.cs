@@ -35,7 +35,7 @@ namespace ArxmlEditor
             {
                 if (m.Role != null)
                 {
-                    if (m.Type == ArCommonType.MetaObjects)
+                    if (m.Type == ArCommonType.Metas)
                     {
                         var mObjs = m.GetCommonMetas();
                         var nodeCurrent = node.Nodes.Add($"{m}");
@@ -62,7 +62,7 @@ namespace ArxmlEditor
                             }
                         }
                     }
-                    else if (m.Type == ArCommonType.MetaObject)
+                    else if (m.Type == ArCommonType.Meta)
                     {
                         var nodeCurrent = node.Nodes.Add($"{m}");
                         nodeCurrent.Tag = (m, false);
@@ -149,7 +149,7 @@ namespace ArxmlEditor
                         cmMember.Items.Clear();
                         if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                         {
-                            if (c.Type == ArCommonType.MetaObject)
+                            if (c.Type == ArCommonType.Meta)
                             {
                                 var itemAdd = cmMember.Items.Add("Add");
 
@@ -190,7 +190,7 @@ namespace ArxmlEditor
                     ConstructTreeView(c, nodeSelect, true);
                     nodeSelect.Expand();
                 }
-                else if (dropItem.Tag is (TreeNode nodeSelect2, ArCommon c2, Type type2))
+                else if (dropItem.Tag is (TreeNode, ArCommon, Type type2))
                 {
                     if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, IMetaRI role3))
                     {
@@ -212,17 +212,17 @@ namespace ArxmlEditor
                     var parentNode = nodeSelect.Parent;
                     var parentCommon = c.Parent;
 
-                    if (c.Type == ArCommonType.MetaObject)
+                    if (c.Type == ArCommonType.Meta)
                     {
                         var meta = c.GetMeta();
                         meta.DeleteAndRemoveFromOwner();
                         nodeSelect.Remove();
                     }
-                    else if ((c.Type == ArCommonType.MetaObjects) && (c.Role != null))
+                    else if ((c.Type == ArCommonType.Metas) && (c.Role != null))
                     {
-                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool isExpand))
+                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool))
                         {
-                            if (c2.Type == ArCommonType.MetaObject)
+                            if (c2.Type == ArCommonType.Meta)
                             {
                                 c2.RemoveAllObject(c.Role);
                                 nodeSelect.Remove();
@@ -246,13 +246,13 @@ namespace ArxmlEditor
             {
                 if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                 {
-                    if ((!isExpand) && (c.Type == ArCommonType.MetaObject))
+                    if ((!isExpand) && (c.Type == ArCommonType.Meta))
                     {
                         nodeSelect.Nodes.Clear();
                         ConstructTreeView(c, nodeSelect, true);
                         nodeSelect.Tag = (c, true);
                     }
-                    else if ((!isExpand) && (c.Type == ArCommonType.MetaObjects))
+                    else if ((!isExpand) && (c.Type == ArCommonType.Metas))
                     {
                         nodeSelect.Nodes.Clear();
                         var metas = c.GetCommonMetas();
@@ -275,7 +275,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new ContentLabel(c2);
+                        var l = new ContentLabel(c2, tbBreif);
                         tpContent.Controls.Add(l);
                         var t = new ContentTextBox(c2);
                         tpContent.Controls.Add(t);
@@ -285,7 +285,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new ContentLabel(c2);
+                        var l = new ContentLabel(c2, tbBreif);
                         tpContent.Controls.Add(l);
                         var t = new ContentListView(c2);
                         tpContent.Controls.Add(t);
@@ -295,7 +295,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new ContentLabel(c2);
+                        var l = new ContentLabel(c2, tbBreif);
                         tpContent.Controls.Add(l);
                         var t = new ContentComboBox(c2);
                         tpContent.Controls.Add(t);
@@ -305,7 +305,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new ContentLabel(c2);
+                        var l = new ContentLabel(c2, tbBreif);
                         tpContent.Controls.Add(l);
                         var t = new ContentListView(c2);
                         tpContent.Controls.Add(t);
@@ -315,7 +315,7 @@ namespace ArxmlEditor
                 {
                     if (c2.Role != null)
                     {
-                        var l = new ContentLabel(c2);
+                        var l = new ContentLabel(c2, tbBreif);
                         tpContent.Controls.Add(l);
                         var t = new ContentCheckBox(c2);
                         tpContent.Controls.Add(t);

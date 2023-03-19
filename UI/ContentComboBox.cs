@@ -40,9 +40,9 @@ namespace ArxmlEditor.UI
                 {
                     common.SetEnum(Text);
                 }
-                else if ((common.Type == ArCommonType.Enums) && (common.Enums != null))
+                else if ((common.Type == ArCommonType.Enums) && (common.GetEnums() != null))
                 {
-                    if ((index >= 0) && (index < common.Enums.Count))
+                    if ((index >= 0) && (index < common.GetEnums().Count))
                     {
                         if (common.GetEnumsName(index) != Text)
                         {

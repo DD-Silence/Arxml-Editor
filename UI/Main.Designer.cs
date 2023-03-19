@@ -146,6 +146,7 @@
             tbBreif.Multiline = true;
             tbBreif.Name = "tbBreif";
             tbBreif.ReadOnly = true;
+            tbBreif.ScrollBars = ScrollBars.Vertical;
             tbBreif.Size = new Size(498, 246);
             tbBreif.TabIndex = 0;
             // 
@@ -157,6 +158,7 @@
             tbOutput.Multiline = true;
             tbOutput.Name = "tbOutput";
             tbOutput.ReadOnly = true;
+            tbOutput.ScrollBars = ScrollBars.Vertical;
             tbOutput.Size = new Size(1079, 246);
             tbOutput.TabIndex = 0;
             // 

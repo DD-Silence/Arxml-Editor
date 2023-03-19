@@ -21,9 +21,9 @@ namespace ArxmlEditor.UI
 {
     internal class ContentLabel : Label
     {
-        public ContentLabel(ArCommon common)
+        public ContentLabel(ArCommon common, TextBox tb)
         {
-            Tag = common;
+            Tag = (common, tb);
             Width = 250;
             if (common.Role != null)
             {
@@ -35,11 +35,11 @@ namespace ArxmlEditor.UI
 
         private void ContentLabel_MouseClick(object? sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
+            if (Tag is (ArCommon c, TextBox tb))
             {
-                ContextMenuStrip.Items.Clear();
-                if (Tag is ArCommon c)
+                if (e.Button == MouseButtons.Right)
                 {
+                    ContextMenuStrip.Items.Clear();
                     if (((c.Type == ArCommonType.Enum) || (c.Type == ArCommonType.Other)) && (c.Role != null))
                     {
                         if (c.Role.Option())
@@ -54,8 +54,9 @@ namespace ArxmlEditor.UI
                             }
                         }
                     }
+                    ContextMenuStrip.Show();
                 }
-                ContextMenuStrip.Show();
+                tb.Text = c.GetDesc();
             }
         }
     }
