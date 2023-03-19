@@ -311,6 +311,16 @@ namespace ArxmlEditor
                         tpContent.Controls.Add(t);
                     }
                 }
+                else if (c2.Type == ArCommonType.Bool)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentCheckBox(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
             }
         }
 

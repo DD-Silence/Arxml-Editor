@@ -31,6 +31,7 @@ namespace ArxmlEditor.Model
         MetaObjects,
         Enum,
         Enums,
+        Bool,
         Other,
         Others,
     };
@@ -41,6 +42,7 @@ namespace ArxmlEditor.Model
         public IEnumerable<IMetaObjectInstance>? Metas { get; }
         public Enum? Enum { get; private set; }
         public IMetaCollectionInstance? Enums { get; }
+        public bool? Bool { get; private set; }
         public object? Obj { get; }
         public IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
@@ -141,6 +143,23 @@ namespace ArxmlEditor.Model
                         {
                             throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
                         }
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    }
+                }
+                else if (obj is bool b)
+                {
+                    if (role == null)
+                    {
+                        Bool = b;
+                        Type = ArCommonType.Bool;
+                    }
+                    else if (role.IsBool())
+                    {
+                        Bool = b;
+                        Type = ArCommonType.Bool ;
                     }
                     else
                     {
@@ -339,6 +358,23 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Enums");
         }
 
+        public bool? TryGetBool()
+        {
+            if (Type == ArCommonType.Bool)
+            {
+                return Bool;
+            }
+            return null;
+        }
+
+        public bool GetBool()
+        {
+            if ((Type == ArCommonType.Bool) && (Bool != null))
+            {
+                return (bool)Bool;
+            }
+            throw new Exception("Type is not Bool");
+        }
         public object? TryGetObj()
         {
             if (Type == ArCommonType.Other)
@@ -840,7 +876,7 @@ namespace ArxmlEditor.Model
 
         public bool IsNull()
         {
-            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && (Obj == null) && (Objs == null));
+            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && (Bool == null) &&(Obj == null) && (Objs == null));
         }
 
         public string[] EnumCanditate()
@@ -917,6 +953,17 @@ namespace ArxmlEditor.Model
                     {
                         Parent.AddObject(Role, e);
                     }
+                }
+            }
+        }
+
+        public void SetBool(bool newValue)
+        {
+            if ((Type == ArCommonType.Bool) && (Role != null))
+            {
+                if (Parent.Type == ArCommonType.MetaObject)
+                {
+                    Parent.GetMeta().SetValue(Role.Name, newValue);
                 }
             }
         }
