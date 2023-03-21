@@ -16,11 +16,8 @@
  */
 
 using ArxmlEditor.Model;
-using GenTool_CsDataServerDomAsr4.Iface;
-using Meta.Helper;
+using ArxmlEditor.UI;
 using Meta.Iface;
-using System.Collections;
-using System.Windows.Forms;
 
 namespace ArxmlEditor
 {
@@ -32,112 +29,48 @@ namespace ArxmlEditor
             InitializeComponent();
         }
 
-        private void ConstructTreeView(IMetaObjectInstance arObj, TreeNode node, bool first)
+        private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
         {
             foreach (var m in arObj.GetExistingMember())
             {
-                if (m.Value is IEnumerable<IMetaObjectInstance> mObjs)
+                if (m.Role != null)
                 {
-                    var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
-                    nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                              $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                              $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    nodeCurrent.Tag = (arObj, mObjs, m.Key, true, true);
-                    foreach (var mChild in mObjs)
+                    if (m.Type == ArCommonType.Metas)
                     {
-                        TreeNode nodeCurrent2;
-                        if (mChild is IReferrable refChild)
+                        var mObjs = m.GetCommonMetas();
+                        var nodeCurrent = node.Nodes.Add($"{m}");
+
+                        nodeCurrent.Tag = (m, true);
+                        foreach (var mChild in mObjs)
                         {
-                            if (m.Key.MultipleInterfaceTypes)
+                            if (mChild.Role != null)
                             {
-                                nodeCurrent2 = nodeCurrent.Nodes.Add($"{refChild.ShortName}");
-                                nodeCurrent2.ToolTipText = $"Type: {mChild.InterfaceType.Name[1..]}{Environment.NewLine}" +
-                                                           $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                           $"Max: {m.Key.Max()}{Environment.NewLine}";
-                            }
-                            else
-                            {
-                                nodeCurrent2 = nodeCurrent.Nodes.Add($"{refChild.ShortName}");
-                                nodeCurrent2.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                           $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                           $"Max: {m.Key.Max()}{Environment.NewLine}";
+                                TreeNode nodeCurrent2;
+                                if (m.Role.MultipleInterfaceTypes)
+                                {
+                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                                }
+                                else
+                                {
+                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
+                                }
+                                nodeCurrent2.Tag = (mChild, false);
+                                if (first)
+                                {
+                                    ConstructTreeView(mChild, nodeCurrent2, false);
+                                }
                             }
                         }
-                        else
-                        {
-                            nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild.InterfaceType.Name}");
-                            nodeCurrent2.ToolTipText = $"Type: {mChild.InterfaceType.Name}{Environment.NewLine}" +
-                                                       $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                       $"Max: {m.Key.Max()}{Environment.NewLine}";
-                        }
-                        nodeCurrent2.Tag = (mObjs, mChild, m.Key, true, false);
+                    }
+                    else if (m.Type == ArCommonType.Meta)
+                    {
+                        var nodeCurrent = node.Nodes.Add($"{m}");
+                        nodeCurrent.Tag = (m, false);
                         if (first)
                         {
-                            ConstructTreeView(mChild, nodeCurrent2, false);
+                            ConstructTreeView(m, nodeCurrent, false);
                         }
                     }
-                }
-                else if (m.Value is IMetaObjectInstance mObj)
-                {
-                    TreeNode nodeCurrent;
-                    if (m.Value is IReferrable refObj)
-                    {
-                        nodeCurrent = node.Nodes.Add($"{refObj.ShortName}");
-                        nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                  $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                  $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    }
-                    else
-                    {
-                        nodeCurrent = node.Nodes.Add($"{m.Key.Name}");
-                        nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                  $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                  $"Max: {m.Key.Max()}{Environment.NewLine}";
-                    }
-                    nodeCurrent.Tag = (arObj, mObj, m.Key, true, false);
-                    if (first)
-                    {
-                        ConstructTreeView(mObj, nodeCurrent, false);
-                    }
-                }
-                else if (m.Value is IEnumerable eMetas)
-                {
-                    if (m.Value is not string)
-                    {
-                        var nodeCurrent = node.Nodes.Add($"{m.Key.Name}(s)");
-                        nodeCurrent.ToolTipText = $"Type: {m.Key.Name}{Environment.NewLine}" +
-                                                  $"Min: {m.Key.Min()}{Environment.NewLine}" +
-                                                  $"Max: {m.Key.Max()}{Environment.NewLine}";
-                        nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
-                        foreach (var e in eMetas)
-                        {
-                            if (e is Enum en)
-                            {
-                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{en.ToString()[1..]}: {m.Key.Name}");
-                                nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
-                            }
-                            else
-                            {
-                                var nodeCurrent2 = nodeCurrent.Nodes.Add($"{e}: {m.Key.Name}");
-                                nodeCurrent2.Tag = (arObj, e, m.Key, false, false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var nodeCurrent = node.Nodes.Add($"{m.Value}: {m.Key.Name}");
-                        nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
-                    }
-                }
-                else if (m.Value is Enum eMeta)
-                {
-                    var nodeCurrent = node.Nodes.Add($"{eMeta.ToString()[1..]}: {m.Key.Name}");
-                    nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
-                }
-                else
-                {
-                    var nodeCurrent = node.Nodes.Add($"{m.Value}: {m.Key.Name}");
-                    nodeCurrent.Tag = (arObj, m.Value, m.Key, false, false);
                 }
             }
         }
@@ -151,36 +84,41 @@ namespace ArxmlEditor
             }
             arFile = new ArFile(paths);
             var rootNode = tvContent.Nodes.Add("Autosar");
-            rootNode.Tag = arFile.root;
+            rootNode.Tag = (arFile.root, true);
             tvContent.ShowNodeToolTips = true;
 
-            ConstructTreeView(arFile.root, rootNode, true);
+            ConstructTreeView(new ArCommon(arFile.root, null, null), rootNode, true);
         }
 
-        private void ConstructAddDropItems(TreeNode node, IMetaObjectInstance mObj, ToolStripDropDownItem container)
+        private void ConstructAddDropItems(TreeNode node, ArCommon common, ToolStripDropDownItem container)
         {
-            foreach (var c in mObj.GetCandidateMember())
+            foreach (var c in common.GetCandidateMember())
             {
-                var toolAdd = container.DropDownItems.Add($"{c.Name}");
-                if (toolAdd is ToolStripDropDownItem dropItem2)
+                if (c.IsMeta())
                 {
-                    if (c.MultipleInterfaceTypes)
+                    var toolAdd = container.DropDownItems.Add($"{c.Name}");
+                    if (toolAdd is ToolStripDropDownItem dropItem2)
                     {
-                        List<ToolStripDropDownItem> items = new();
-                        foreach (var c2 in mObj.RoleTypesFor(c.Name))
+                        if (c.MultipleInterfaceTypes)
                         {
-                            var item = new ToolStripMenuItem(c2.Name[1..]);
-                            item.Tag = (node, mObj, c2);
-                            item.Click += DropAddHandler;
-                            items.Add(item);
+                            List<ToolStripDropDownItem> items = new();
+                            foreach (var c2 in common.RoleTypesFor(c.Name))
+                            {
+                                var item = new ToolStripMenuItem(c2.Name[1..])
+                                {
+                                    Tag = (node, common, c2)
+                                };
+                                item.Click += DropAddHandler;
+                                items.Add(item);
+                            }
+                            dropItem2.DropDownItems.AddRange(items.ToArray());
+                            toolAdd.Tag = (node, common, c);
                         }
-                        dropItem2.DropDownItems.AddRange(items.ToArray());
-                        toolAdd.Tag = (node, mObj, c);
-                    }
-                    else
-                    {
-                        toolAdd.Tag = (node, mObj, c);
-                        toolAdd.Click += DropAddHandler;
+                        else
+                        {
+                            toolAdd.Tag = (node, common, c);
+                            toolAdd.Click += DropAddHandler;
+                        }
                     }
                 }
             }
@@ -193,40 +131,50 @@ namespace ArxmlEditor
 
             switch (e.Button)
             {
+                case MouseButtons.Left:
+                    {
+                        if (nodeSelect.Tag is (ArCommon c, bool isExpand))
+                        {
+                            ConstructContent(c);
+                            if (c.Role != null)
+                            {
+                                UpdateBrief(c.GetDesc());
+                            }
+                        }
+                    }
+                    break;
+
                 case MouseButtons.Right:
                     {
                         cmMember.Items.Clear();
-                        if (nodeSelect.Tag is (_ , object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                        if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                         {
-                            if (obj is IMetaObjectInstance mObj)
+                            if (c.Type == ArCommonType.Meta)
                             {
                                 var itemAdd = cmMember.Items.Add("Add");
+
                                 if (itemAdd is ToolStripDropDownItem dropItemAdd)
                                 {
-                                    ConstructAddDropItems(nodeSelect, mObj, dropItemAdd);
+                                    ConstructAddDropItems(nodeSelect, c, dropItemAdd);
                                     if (dropItemAdd.DropDownItems.Count == 0)
                                     {
                                         cmMember.Items.Remove(itemAdd);
                                     }
                                 }
                             }
-                            else if ((obj is not IEnumerable) || (obj is string))
-                            {
-                                var itemAdd = cmMember.Items.Add("Edit");
-                            }
 
-                            if (obj.CanDelete(mObjRole))
+                            if (c.CanDelete())
                             {
                                 var itemDel = cmMember.Items.Add("Del");
                                 itemDel.Click += DropDelHandler;
-                                itemDel.Tag = (nodeSelect, obj, mObjRole);
+                                itemDel.Tag = (nodeSelect, c);
                             }
                         }
                         cmMember.Show(tvContent, new Point(e.X, e.Y));
                     }
                     break;
 
-                default: 
+                default:
                     break;
             }
         }
@@ -235,45 +183,20 @@ namespace ArxmlEditor
         {
             if (sender is ToolStripDropDownItem dropItem)
             {
-                if (dropItem.Tag is (TreeNode nodeSelect, IMetaObjectInstance mObj, IMetaRI role))
+                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c, IMetaRI role))
                 {
-                    if (role.Single())
-                    {  
-                        if (role.Option())
-                        {
-                            mObj.SetSpecified(role.Name, true);
-                            nodeSelect.Nodes.Clear();
-                            ConstructTreeView(mObj, nodeSelect, true);
-                            nodeSelect.Expand();
-                        }
-                    }
-                    else if (role.Multiply())
-                    {
-                        var collection = mObj.GetCollectionValueRaw(role.Name);
-
-                        if (collection is IEnumerable<IMetaObjectInstance>)
-                        {
-                            mObj.AddNew(role.Name, role.InterfaceType);
-                            nodeSelect.Nodes.Clear();
-                            ConstructTreeView(mObj, nodeSelect, true);
-                            nodeSelect.Expand();
-                        }
-                        else
-                        {
-                            mObj.AddObject(role);
-                            nodeSelect.Nodes.Clear();
-                            ConstructTreeView(mObj, nodeSelect, true);
-                            nodeSelect.Expand();
-                        }
-                    }
+                    c.Add(role);
+                    nodeSelect.Nodes.Clear();
+                    ConstructTreeView(c, nodeSelect, true);
+                    nodeSelect.Expand();
                 }
-                else if (dropItem.Tag is (TreeNode nodeSelect2, IMetaObjectInstance mObj2, Type type2))
+                else if (dropItem.Tag is (TreeNode, ArCommon, Type type2))
                 {
-                    if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, IMetaObjectInstance mObj3, IMetaRI role3))
+                    if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, IMetaRI role3))
                     {
-                        mObj3.AddNew(role3.Name, type2);
+                        c3.Add(role3, type2);
                         nodeSelect3.Nodes.Clear();
-                        ConstructTreeView(mObj3, nodeSelect3, true);
+                        ConstructTreeView(c3, nodeSelect3, true);
                         nodeSelect3.Expand();
                     }
                 }
@@ -284,53 +207,34 @@ namespace ArxmlEditor
         {
             if (sender is ToolStripDropDownItem dropItem)
             {
-                if (dropItem.Tag is (TreeNode nodeSelect, IMetaObjectInstance mObj, IMetaRI role))
+                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c))
                 {
-                    mObj.DeleteAndRemoveFromOwner();
-                    if (nodeSelect.Parent.Tag is (IMetaObjectInstance parent, IEnumerable<IMetaObjectInstance> mObjs, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                    var parentNode = nodeSelect.Parent;
+                    var parentCommon = c.Parent;
+
+                    if (c.Type == ArCommonType.Meta)
                     {
-                        if (mObjs.Count() == 0)
-                        {
-                            nodeSelect.Parent.Remove();
-                        }
-                        else
-                        {
-                            nodeSelect.Remove();
-                        }
-                    }
-                    else
-                    {
+                        var meta = c.GetMeta();
+                        meta.DeleteAndRemoveFromOwner();
                         nodeSelect.Remove();
                     }
-                }
-                else if (dropItem.Tag is (TreeNode nodeSelect2, object obj2, IMetaRI role2))
-                {
-                    if (nodeSelect2.Tag is (IMetaObjectInstance parent, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                    else if ((c.Type == ArCommonType.Metas) && (c.Role != null))
                     {
-                        if (obj is IMetaCollectionInstance metas)
+                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool))
                         {
-                            parent.RemoveAllObject(mObjRole);
-                            var p = nodeSelect2.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(parent, p, true);
-                            p.Expand();
+                            if (c2.Type == ArCommonType.Meta)
+                            {
+                                c2.RemoveAllObject(c.Role);
+                                nodeSelect.Remove();
+                            }
                         }
-                        else if (obj2.GetType().IsClass)
-                        {
-                            parent.SetSpecified(mObjRole.Name, false);
-                            var p = nodeSelect2.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(parent, p, true);
-                            p.Expand();
-                        }
-                        else
-                        {
-                            parent.RemoveObject(mObjRole, obj);
-                            var p = nodeSelect2.Parent.Parent;
-                            p.Nodes.Clear();
-                            ConstructTreeView(parent, p, true);
-                            p.Expand();
-                        }
+                    }
+
+                    while (parentCommon.Empty())
+                    {
+                        parentNode.Remove();
+                        parentCommon = parentCommon.Parent;
+                        parentNode = parentNode.Parent;
                     }
                 }
             }
@@ -340,27 +244,100 @@ namespace ArxmlEditor
         {
             if (e.Node is TreeNode nodeSelect)
             {
-                if (nodeSelect.Tag is (IMetaObjectInstance mObj, object obj, IMetaRI mObjRole, bool isMObj, bool isExpand))
+                if (nodeSelect.Tag is (ArCommon c, bool isExpand))
                 {
-                    if ((!isExpand) && (isMObj) && (obj is IMetaObjectInstance m))
+                    if ((!isExpand) && (c.Type == ArCommonType.Meta))
                     {
                         nodeSelect.Nodes.Clear();
-                        ConstructTreeView(m, nodeSelect, true);
-                        nodeSelect.Tag = (mObj, obj, mObjRole, isMObj, true);
+                        ConstructTreeView(c, nodeSelect, true);
+                        nodeSelect.Tag = (c, true);
                     }
-                }
-                else if (nodeSelect.Tag is (IEnumerable<IMetaObjectInstance> mObj2, object obj2, IMetaRI mObjRole2, bool isMObj2, bool isExpand2))
-                {
-                    if ((!isExpand2) && (isMObj2) && (obj2 is IMetaObjectInstance m))
+                    else if ((!isExpand) && (c.Type == ArCommonType.Metas))
                     {
                         nodeSelect.Nodes.Clear();
-                        ConstructTreeView(m, nodeSelect, true);
-                        nodeSelect.Tag = (mObj2, obj2, mObjRole2, isMObj2, true);
+                        var metas = c.GetCommonMetas();
+                        foreach (var meta in metas)
+                        {
+                            ConstructTreeView(meta, nodeSelect, true);
+                        }
                     }
                 }
             }
         }
 
+        private void ConstructContent(ArCommon c)
+        {
+            tpContent.Controls.Clear();
 
+            foreach (var c2 in c.GetAllMember())
+            {
+                if (c2.Type == ArCommonType.Other)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentTextBox(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Others)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentListView(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Enum)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentComboBox(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Enums)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentListView(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
+                else if (c2.Type == ArCommonType.Bool)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentCheckBox(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
+            }
+        }
+
+        private void UpdateBrief(string brief)
+        {
+            tbBreif.Text = brief;
+        }
+
+        private void AddBrief(string brief)
+        {
+            tbBreif.Text += brief;
+        }
+
+        private void UpdateOutput(string message)
+        {
+            tbOutput.Text += Environment.NewLine;
+            tbOutput.Text += message;
+        }
     }
 }
