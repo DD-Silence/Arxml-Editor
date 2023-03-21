@@ -33,7 +33,13 @@ namespace ArxmlEditor.UI
             Width = 250;
             Height = 250;
             Enabled = !common.IsNull();
+            AutoArrange = true;
             MouseClick += ContentListView_MouseClick;
+
+            ContextMenuStrip = new ContextMenuStrip();
+            var itemAdd = ContextMenuStrip.Items.Add("Add");
+            itemAdd.Click += ItemAdd_Click;
+            itemAdd.Tag = Tag;
 
             if (common.Role != null)
             {
@@ -71,16 +77,24 @@ namespace ArxmlEditor.UI
             {
                 SelectedItems[0].Text = cbCandidate.Text;
             }
+            if (cbCandidate != null)
+            {
+                cbCandidate.Visible = false;
+                cbCandidate.BringToFront();
+            }
         }
 
         private void ContentListView_MouseClick(object? sender, MouseEventArgs e)
         {
             var lvItem = GetItemAt(e.X, e.Y);
-            lvItem.Selected = true;
-
             if (lvItem != null)
             {
-                if (e.Button == MouseButtons.Left)
+                lvItem.Selected = true;
+            }
+
+            if (e.Button == MouseButtons.Left)
+            {
+                if (lvItem != null)
                 {
                     if (cbCandidate != null)
                     {
@@ -90,6 +104,81 @@ namespace ArxmlEditor.UI
                         cbCandidate.BringToFront();
                         cbCandidate.Focus();
                         cbCandidate.Text = lvItem.Text;
+                    }
+                }
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                if (cbCandidate != null)
+                {
+                    cbCandidate.Visible = false;
+                    cbCandidate.Hide();
+                }
+
+                ContextMenuStrip.Items.Clear();
+                var itemAdd = ContextMenuStrip.Items.Add("Add");
+                itemAdd.Click += ItemAdd_Click;
+                itemAdd.Tag = Tag;
+
+                if (lvItem != null)
+                {
+                    var itemDel = ContextMenuStrip.Items.Add("Del");
+                    itemDel.Click += ItemDel_Click;
+                    itemDel.Tag = (Tag, lvItem.Index);
+                }
+            }
+        }
+
+        private void ItemAdd_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripItem item)
+            {
+                if (item.Tag is ArCommon c)
+                {
+                    if (c.Role != null)
+                    {
+                        c.Parent.Add(c.Role);
+                        ContentUpdate();
+                    }
+                }
+            }
+        }
+
+        private void ItemDel_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripItem item)
+            {
+                if (item.Tag is (ArCommon c, int index))
+                {
+                    if (c.Role != null)
+                    {
+                        c.Parent.RemoveObject(c.Role, index);
+                        ContentUpdate();
+                    }
+                }
+            }
+        }
+
+        public void ContentUpdate()
+        {
+            if (Tag is ArCommon c)
+            {
+                Items.Clear();
+
+                if (c.Type == ArCommonType.Others)
+                {
+                    var commons = c.GetCommonObjs();
+                    foreach (var co in commons)
+                    {
+                        Items.Add(co.ToString());
+                    }
+                }
+                else if (c.Type == ArCommonType.Enums)
+                {
+                    var commons = c.GetCommonEnums();
+                    foreach (var co in commons)
+                    {
+                        Items.Add(co.ToString());
                     }
                 }
             }

@@ -21,6 +21,7 @@ using Meta.Helper;
 using Meta.Iface;
 using System;
 using System.Data;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 
 namespace ArxmlEditor.Model
@@ -431,10 +432,9 @@ namespace ArxmlEditor.Model
         {
             List<ArCommon> result = new();
 
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var arObj = GetMeta();
-                foreach (var o in arObj.MetaAllRoles)
+                foreach (var o in Meta.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
@@ -445,19 +445,19 @@ namespace ArxmlEditor.Model
                     {
                         if (o.Option())
                         {
-                            if (arObj.IsSpecified(o.Name))
+                            if (Meta.IsSpecified(o.Name))
                             {
-                                result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                                result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
                             }
                         }
                         else
                         {
-                            result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                            result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
                         }
                     }
                     else if (o.Multiply())
                     {
-                        var childObjs = arObj.GetCollectionValueRaw(o.Name);
+                        var childObjs = Meta.GetCollectionValueRaw(o.Name);
 
                         if (childObjs is IMetaCollectionInstance collection)
                         {
@@ -476,10 +476,9 @@ namespace ArxmlEditor.Model
         {
             List<IMetaRI> result = new();
 
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var arObj = GetMeta();
-                foreach (var o in arObj.MetaAllRoles)
+                foreach (var o in Meta.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
@@ -490,7 +489,7 @@ namespace ArxmlEditor.Model
                     {
                         if (o.Option())
                         {
-                            if (!arObj.IsSpecified(o.Name))
+                            if (!Meta.IsSpecified(o.Name))
                             {
                                 result.Add(o);
                             }
@@ -498,7 +497,7 @@ namespace ArxmlEditor.Model
                     }
                     else if (o.Multiply())
                     {
-                        var childObjs = arObj.GetCollectionValueRaw(o.Name);
+                        var childObjs = Meta.GetCollectionValueRaw(o.Name);
                         if (childObjs is IMetaCollectionInstance metaObjs)
                         {
                             if (metaObjs.Count < (uint)o.MaxOccurs)
@@ -516,10 +515,9 @@ namespace ArxmlEditor.Model
         {
             List<ArCommon> result = new();
 
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var arObj = GetMeta();
-                foreach (var o in arObj.MetaAllRoles)
+                foreach (var o in Meta.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
@@ -530,9 +528,9 @@ namespace ArxmlEditor.Model
                     {
                         if (o.Option())
                         {
-                            if (arObj.IsSpecified(o.Name))
+                            if (Meta.IsSpecified(o.Name))
                             {
-                                result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                                result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
                             }
                             else
                             {
@@ -541,12 +539,12 @@ namespace ArxmlEditor.Model
                         }
                         else
                         {
-                            result.Add(new ArCommon(arObj.GetValue(o.Name), o, this));
+                            result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
                         }
                     }
                     else if (o.Multiply())
                     {
-                        var childObjs = arObj.GetCollectionValueRaw(o.Name);
+                        var childObjs = Meta.GetCollectionValueRaw(o.Name);
 
                         if (childObjs is IMetaCollectionInstance collection)
                         {
@@ -560,10 +558,9 @@ namespace ArxmlEditor.Model
 
         public void Check()
         {
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var arObj = GetMeta();
-                foreach (var o in arObj.MetaAllRoles)
+                foreach (var o in Meta.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
@@ -574,12 +571,12 @@ namespace ArxmlEditor.Model
                     {
                         if (o.Required())
                         {
-                            var v = arObj.GetValue(o.Name);
+                            var v = Meta.GetValue(o.Name);
                             if (v == null)
                             {
                                 if (o.InterfaceType.Name == "String")
                                 {
-                                    arObj.SetValue(o.Name, "");
+                                    Meta.SetValue(o.Name, "");
                                 }
                                 else
                                 {
@@ -594,12 +591,10 @@ namespace ArxmlEditor.Model
 
         private object? AddObject(IMetaRI role, object? obj=null)
         {
-            var arObj = TryGetMeta();
-
-            if (arObj != null)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
                 object? objAdd;
-                var method = arObj.GetType().GetMethod($"Add{role.Name}");
+                var method = Meta.GetType().GetMethod($"Add{role.Name}");
                 if (obj == null)
                 {
                     objAdd = Activator.CreateInstance(role.InterfaceType);
@@ -610,7 +605,7 @@ namespace ArxmlEditor.Model
                 }
                 if ((method != null) && (objAdd != null))
                 {
-                    method.Invoke(arObj, new object[] { objAdd });
+                    method.Invoke(Meta, new object[] { objAdd });
                     return objAdd;
                 }
             }
@@ -619,11 +614,9 @@ namespace ArxmlEditor.Model
 
         public void RemoveAllObject(IMetaRI role)
         {
-            var arObj = TryGetMeta();
-
-            if (arObj != null)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var collection = arObj.GetCollectionValueRaw(role.Name);
+                var collection = Meta.GetCollectionValueRaw(role.Name);
                 if (collection is IEnumerable<IMetaObjectInstance> metas)
                 {
                     foreach (var meta in metas.ToList())
@@ -644,26 +637,29 @@ namespace ArxmlEditor.Model
 
         public void RemoveObject(IMetaRI role, Int32 index)
         {
-            var arObj = TryGetMeta();
-
-            if (arObj != null)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var method = arObj.GetType().GetMethod($"Remove{role.Name}");
-                method?.Invoke(arObj, new object[] { index });
+                var collection = Meta.GetCollectionValueRaw(role.Name);
+                if (collection is IMetaCollectionInstance metas)
+                {
+                    if (metas.Count > index)
+                    {
+                        var method = Meta.GetType().GetMethod($"Remove{role.Name}");
+                        method?.Invoke(Meta, new object[] { index });
+                    }
+                }
             }
         }
 
         public void RemoveObject(IMetaRI role, ArCommon c)
         {
-            var arObj = TryGetMeta();
-
-            if (arObj != null)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var collection = arObj.GetCollectionValueRaw(role.Name);
-                if (collection is IMetaCollectionInstance metas2)
+                var collection = Meta.GetCollectionValueRaw(role.Name);
+                if (collection is IMetaCollectionInstance metas)
                 {
                     Int32 index = 0;
-                    foreach (var meta in metas2)
+                    foreach (var meta in metas)
                     {
                         if (meta.Equals(c.Obj))
                         {
@@ -672,28 +668,16 @@ namespace ArxmlEditor.Model
                         }
                         index++;
                     }
-                    throw new Exception($"No {role.Name} member {c.Obj} in {arObj}");
+                    throw new Exception($"No {role.Name} member {c.Obj} in {Meta}");
                 }
             }
         }
 
         public void SetSpecified(IMetaRI role, bool isSpecifed)
         {
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var mObj = GetMeta();
-                mObj.SetSpecified(role.Name, isSpecifed);
-            }
-        }
-
-        public void SetObjectSpecified(IMetaRI role, bool isSpecifed)
-        {
-            var arObj = TryGetMeta();
-
-            if (arObj != null)
-            {
-                var method = arObj.GetType().GetMethod($"{role.Name}Specified");
-                method?.Invoke(arObj, new object[] { isSpecifed });
+                Meta.SetSpecified(role.Name, isSpecifed);
             }
         }
 
@@ -701,13 +685,11 @@ namespace ArxmlEditor.Model
         {
             if (Role != null)
             {
-                if (Type == ArCommonType.Meta)
+                if ((Type == ArCommonType.Meta) && (Meta != null))
                 {
-                    var mObj = GetMeta();
-
                     if ((uint)Role.MaxOccurs > 1)
                     {
-                        var brothers = mObj.Owner.GetCollectionValue(Role.Name);
+                        var brothers = Meta.Owner.GetCollectionValue(Role.Name);
 
                         if (brothers.Count() > Role.MinOccurs)
                         {
@@ -744,49 +726,45 @@ namespace ArxmlEditor.Model
 
         public ArCommon? Add(IMetaRI role, Type? type = null)
         {
-            if (Type != ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                return null;
-            }
-
-            var mObj = GetMeta();
-
-            if(role.Single())
-            {
-                if (role.Option())
+                if (role.Single())
                 {
-                    mObj.SetSpecified(role.Name, true);
-                    var newCommon = new ArCommon(mObj.GetValue(role.Name), role, this);
-                    newCommon.Check();
-                    return newCommon;
-                }
-            }
-            else if (role.Multiply())
-            {
-                if (role.MultipleInterfaceTypes == true)
-                {
-                    var newObj = mObj.AddNew(role.Name, type);
-                    var newCommon = new ArCommon(newObj, role, this);
-                    newCommon.Check();
-                    return newCommon;
-                }
-                else
-                {
-                    if (role.IsMeta())
+                    if (role.Option())
                     {
-                        var newObj = mObj.AddNew(role.Name, role.InterfaceType);
+                        Meta.SetSpecified(role.Name, true);
+                        var newCommon = new ArCommon(Meta.GetValue(role.Name), role, this);
+                        newCommon.Check();
+                        return newCommon;
+                    }
+                }
+                else if (role.Multiply())
+                {
+                    if (role.MultipleInterfaceTypes == true)
+                    {
+                        var newObj = Meta.AddNew(role.Name, type);
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
                         return newCommon;
                     }
                     else
                     {
-                        var newObj = AddObject(role);
-                        if (newObj != null)
+                        if (role.IsMeta())
                         {
+                            var newObj = Meta.AddNew(role.Name, role.InterfaceType);
                             var newCommon = new ArCommon(newObj, role, this);
                             newCommon.Check();
                             return newCommon;
+                        }
+                        else
+                        {
+                            var newObj = AddObject(role);
+                            if (newObj != null)
+                            {
+                                var newCommon = new ArCommon(newObj, role, this);
+                                newCommon.Check();
+                                return newCommon;
+                            }
                         }
                     }
                 }
@@ -796,10 +774,9 @@ namespace ArxmlEditor.Model
 
         public Type[] RoleTypesFor(string roleName)
         {
-            if (Type == ArCommonType.Meta)
+            if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                var meta = GetMeta();
-                return meta.RoleTypesFor(roleName);
+                return Meta.RoleTypesFor(roleName);
             }
             return Array.Empty<Type>();
         }
@@ -967,9 +944,9 @@ namespace ArxmlEditor.Model
         {
             if ((Type == ArCommonType.Other) && (Role != null))
             {
-                if (Parent.Type == ArCommonType.Meta)
+                if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
                 {
-                    Parent.GetMeta().SetValue(Role.Name, newValue);
+                    Parent.Meta.SetValue(Role.Name, newValue);
                 }
             }
         }

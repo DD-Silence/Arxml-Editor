@@ -46,17 +46,49 @@ namespace ArxmlEditor.UI
                         {
                             if (c.IsNull())
                             {
-                                ContextMenuStrip.Items.Add("Add");
+                                var itemAdd = ContextMenuStrip.Items.Add("Add");
+                                itemAdd.Click += ItemAdd_Click;
+                                itemAdd.Tag = c;
                             }
                             else
                             {
-                                ContextMenuStrip.Items.Add("Delete");
+                                var itemDel = ContextMenuStrip.Items.Add("Delete");
+                                itemDel.Click += ItemDel_Click;
+                                itemDel.Tag = c;
                             }
                         }
                     }
                     ContextMenuStrip.Show();
                 }
                 tb.Text = c.GetDesc();
+            }
+        }
+
+        private void ItemAdd_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripItem item)
+            {
+                if (item.Tag is ArCommon c)
+                {
+                    if (c.Role != null)
+                    {
+                        c.Parent.Add(c.Role);
+                    }
+                }
+            }
+        }
+
+        private void ItemDel_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripItem item)
+            {
+                if (item.Tag is ArCommon c)
+                {
+                    if (c.Role != null)
+                    {
+                        c.Parent.SetSpecified(c.Role, false);
+                    }
+                }
             }
         }
     }
