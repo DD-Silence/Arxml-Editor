@@ -40,7 +40,7 @@ namespace ArxmlEditor.UI
                 if (e.Button == MouseButtons.Right)
                 {
                     ContextMenuStrip.Items.Clear();
-                    if (((c.Type == ArCommonType.Enum) || (c.Type == ArCommonType.Other)) && (c.Role != null))
+                    if (((c.Type == ArCommonType.Enum) || (c.Type == ArCommonType.Bool) || (c.Type == ArCommonType.Other)) && (c.Role != null))
                     {
                         if (c.Role.Option())
                         {

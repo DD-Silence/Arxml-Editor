@@ -15,13 +15,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using GenTool_CsDataServerAsrBase;
 using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
-using System;
-using System.Data;
-using System.Diagnostics.Metrics;
 using System.Reflection;
 
 namespace ArxmlEditor.Model
@@ -37,6 +33,9 @@ namespace ArxmlEditor.Model
         Other,
         Others,
     };
+
+    public delegate void ChangedEventHandler();
+
     public class ArCommon
     {
         public ArCommonType Type { get; }
@@ -49,6 +48,7 @@ namespace ArxmlEditor.Model
         public IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
+        public event ChangedEventHandler? Changed;
 
         public ArCommon(object? obj, IMetaRI? role, ArCommon? parent)
         {
@@ -597,7 +597,14 @@ namespace ArxmlEditor.Model
                 var method = Meta.GetType().GetMethod($"Add{role.Name}");
                 if (obj == null)
                 {
-                    objAdd = Activator.CreateInstance(role.InterfaceType);
+                    if (role.InterfaceType.Name == "String")
+                    {
+                        objAdd = $"{role.Name}";
+                    }
+                    else
+                    {
+                        objAdd = Activator.CreateInstance(role.InterfaceType);
+                    }
                 }
                 else
                 {
@@ -606,6 +613,7 @@ namespace ArxmlEditor.Model
                 if ((method != null) && (objAdd != null))
                 {
                     method.Invoke(Meta, new object[] { objAdd });
+                    Changed?.Invoke();
                     return objAdd;
                 }
             }
@@ -632,6 +640,7 @@ namespace ArxmlEditor.Model
                         RemoveObject(role, 0);
                     }
                 }
+                Changed?.Invoke();
             }
         }
 
@@ -646,6 +655,7 @@ namespace ArxmlEditor.Model
                     {
                         var method = Meta.GetType().GetMethod($"Remove{role.Name}");
                         method?.Invoke(Meta, new object[] { index });
+                        Changed?.Invoke();
                     }
                 }
             }
@@ -664,6 +674,7 @@ namespace ArxmlEditor.Model
                         if (meta.Equals(c.Obj))
                         {
                             RemoveObject(role, index);
+                            Changed?.Invoke();
                             return;
                         }
                         index++;
@@ -678,6 +689,7 @@ namespace ArxmlEditor.Model
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
                 Meta.SetSpecified(role.Name, isSpecifed);
+                Changed?.Invoke();
             }
         }
 
@@ -735,6 +747,7 @@ namespace ArxmlEditor.Model
                         Meta.SetSpecified(role.Name, true);
                         var newCommon = new ArCommon(Meta.GetValue(role.Name), role, this);
                         newCommon.Check();
+                        Changed?.Invoke();
                         return newCommon;
                     }
                 }
@@ -745,6 +758,7 @@ namespace ArxmlEditor.Model
                         var newObj = Meta.AddNew(role.Name, type);
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
+                        Changed?.Invoke();
                         return newCommon;
                     }
                     else
@@ -754,6 +768,7 @@ namespace ArxmlEditor.Model
                             var newObj = Meta.AddNew(role.Name, role.InterfaceType);
                             var newCommon = new ArCommon(newObj, role, this);
                             newCommon.Check();
+                            Changed?.Invoke();
                             return newCommon;
                         }
                         else
@@ -936,6 +951,7 @@ namespace ArxmlEditor.Model
                 if (Parent.Type == ArCommonType.Meta)
                 {
                     Parent.GetMeta().SetValue(Role.Name, newValue);
+                    Changed?.Invoke();
                 }
             }
         }
@@ -947,6 +963,7 @@ namespace ArxmlEditor.Model
                 if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
                 {
                     Parent.Meta.SetValue(Role.Name, newValue);
+                    Changed?.Invoke();
                 }
             }
         }

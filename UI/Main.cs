@@ -267,6 +267,9 @@ namespace ArxmlEditor
 
         private void ConstructContent(ArCommon c)
         {
+            tpContent.Tag = c;
+            c.Changed -= Common_Changed;
+            c.Changed += Common_Changed;
             tpContent.Controls.Clear();
 
             foreach (var c2 in c.GetAllMember())
@@ -321,6 +324,14 @@ namespace ArxmlEditor
                         tpContent.Controls.Add(t);
                     }
                 }
+            }
+        }
+
+        private void Common_Changed()
+        {
+            if (tpContent.Tag is ArCommon common)
+            {
+                ConstructContent(common);
             }
         }
 
