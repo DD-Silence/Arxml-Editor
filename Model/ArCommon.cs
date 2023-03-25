@@ -19,6 +19,7 @@ using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace ArxmlEditor.Model
 {
@@ -589,7 +590,7 @@ namespace ArxmlEditor.Model
             }
         }
 
-        private object? AddObject(IMetaRI role, object? obj=null)
+        private object? AddObject(IMetaRI role, object? obj=null, bool notify = true)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -613,14 +614,17 @@ namespace ArxmlEditor.Model
                 if ((method != null) && (objAdd != null))
                 {
                     method.Invoke(Meta, new object[] { objAdd });
-                    Changed?.Invoke();
+                    if (notify)
+                    {
+                        Changed?.Invoke();
+                    }
                     return objAdd;
                 }
             }
             return null;
         }
 
-        public void RemoveAllObject(IMetaRI role)
+        public void RemoveAllObject(IMetaRI role, bool notify=true)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -637,14 +641,17 @@ namespace ArxmlEditor.Model
                     var count = c.Count;
                     for (Int32 i = 0; i < count; i++)
                     {
-                        RemoveObject(role, 0);
+                        RemoveObject(role, 0, false);
                     }
                 }
-                Changed?.Invoke();
+                if (notify)
+                {
+                    Changed?.Invoke();
+                }
             }
         }
 
-        public void RemoveObject(IMetaRI role, Int32 index)
+        public void RemoveObject(IMetaRI role, Int32 index, bool notify=true)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -655,7 +662,10 @@ namespace ArxmlEditor.Model
                     {
                         var method = Meta.GetType().GetMethod($"Remove{role.Name}");
                         method?.Invoke(Meta, new object[] { index });
-                        Changed?.Invoke();
+                        if (notify)
+                        {
+                            Changed?.Invoke();
+                        }
                     }
                 }
             }
@@ -935,11 +945,12 @@ namespace ArxmlEditor.Model
                         }
                         count++;
                     }
-                    Parent.RemoveAllObject(Role);
+                    Parent.RemoveAllObject(Role, false);
                     foreach (var e in results)
                     {
-                        Parent.AddObject(Role, e);
+                        Parent.AddObject(Role, e, false);
                     }
+                    Changed?.Invoke();
                 }
             }
         }
@@ -963,6 +974,36 @@ namespace ArxmlEditor.Model
                 if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
                 {
                     Parent.Meta.SetValue(Role.Name, newValue);
+                    Changed?.Invoke();
+                }
+            }
+        }
+
+        public void SetOthers(int index, object newValue)
+        {
+            if ((Type == ArCommonType.Others) && (Role != null) && (Objs != null))
+            {
+                if ((index >= 0) && (index < Objs.Count()))
+                {
+                    List<object> results = new();
+                    int count = 0;
+                    foreach (var o in Objs)
+                    {
+                        if (count == index)
+                        {
+                            results.Add(newValue);
+                        }
+                        else
+                        {
+                            results.Add(o);
+                        }
+                        count++;
+                    }
+                    Parent.RemoveAllObject(Role, false);
+                    foreach (var e in results)
+                    {
+                        Parent.AddObject(Role, e, false);
+                    }
                     Changed?.Invoke();
                 }
             }

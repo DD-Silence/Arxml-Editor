@@ -22,6 +22,7 @@ namespace ArxmlEditor.UI
     internal class ContentListView : ListView
     {
         private readonly ContentComboBox? cbCandidate;
+        private string inputBuffer = "";
 
         public ContentListView(ArCommon common)
         {
@@ -35,6 +36,8 @@ namespace ArxmlEditor.UI
             Enabled = !common.IsNull();
             AutoArrange = true;
             MouseClick += ContentListView_MouseClick;
+            BeforeLabelEdit += ContentListView_BeforeLabelEdit;
+            AfterLabelEdit += ContentListView_AfterLabelEdit;
 
             ContextMenuStrip = new ContextMenuStrip();
             var itemAdd = ContextMenuStrip.Items.Add("Add");
@@ -66,6 +69,31 @@ namespace ArxmlEditor.UI
                     {
                         cbCandidate.Items.Add(co.ToString());
                         Items.Add(co.ToString());
+                    }
+                }
+            }
+        }
+
+        private void ContentListView_BeforeLabelEdit(object? sender, LabelEditEventArgs e)
+        {
+            if (sender is ContentListView l)
+            {
+                if (l.SelectedItems.Count > 0)
+                {
+                    inputBuffer = l.SelectedItems[0].Text;
+                }
+            }
+        }
+
+        private void ContentListView_AfterLabelEdit(object? sender, LabelEditEventArgs e)
+        {
+            if (sender is ContentListView l)
+            {
+                if ((l.Tag is ArCommon c) && (e.Label != null) && (l.SelectedIndices.Count > 0))
+                {
+                    if ((l.SelectedIndices[0] >= 0) && (e.Label != inputBuffer))
+                    {
+                        c.SetOthers(l.SelectedIndices[0], e.Label);
                     }
                 }
             }
