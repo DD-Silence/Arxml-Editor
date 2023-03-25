@@ -1074,36 +1074,6 @@ namespace ArxmlEditor.Model
             }
         }
 
-        public void SetOthers(int index, object newValue)
-        {
-            if ((Type == ArCommonType.Others) && (Role != null) && (Objs != null))
-            {
-                if ((index >= 0) && (index < Objs.Count()))
-                {
-                    List<object> results = new();
-                    int count = 0;
-                    foreach (var o in Objs)
-                    {
-                        if (count == index)
-                        {
-                            results.Add(newValue);
-                        }
-                        else
-                        {
-                            results.Add(o);
-                        }
-                        count++;
-                    }
-                    Parent.RemoveAllObject(Role, false);
-                    foreach (var e in results)
-                    {
-                        Parent.AddObject(Role, e, false);
-                    }
-                    Changed?.Invoke();
-                }
-            }
-        }
-
         private string GetRoleTypeArDocument()
         {
             string result = "";
