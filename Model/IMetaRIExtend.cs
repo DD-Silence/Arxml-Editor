@@ -119,6 +119,15 @@ namespace ArxmlEditor.Model
             return false;
         }
 
+        public static bool IsRefernce(this IMetaRI role)
+        {
+            if (role.InterfaceType.Name.EndsWith("_Ref"))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static bool IsOther(this IMetaRI role)
         {
             return (!role.IsMeta()) && (!role.IsEnum()) && (!role.IsBool()) && (!role.IsInteger());

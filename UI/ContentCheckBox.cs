@@ -16,8 +16,6 @@
  */
 
 using ArxmlEditor.Model;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ArxmlEditor.UI
 {

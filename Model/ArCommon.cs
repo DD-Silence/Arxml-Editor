@@ -19,6 +19,7 @@ using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
 using System.Reflection;
+using System.Security.Cryptography.Xml;
 using System.Xml.Linq;
 
 namespace ArxmlEditor.Model
@@ -26,6 +27,8 @@ namespace ArxmlEditor.Model
     public enum ArCommonType
     {
         None = 0,
+        Reference,
+        References,
         Meta,
         Metas,
         Enum,
@@ -41,14 +44,16 @@ namespace ArxmlEditor.Model
     public class ArCommon
     {
         public ArCommonType Type { get; }
-        public IMetaObjectInstance? Meta { get; }
-        public IEnumerable<IMetaObjectInstance>? Metas { get; }
-        public Enum? Enum { get; private set; }
-        public IMetaCollectionInstance? Enums { get; }
-        public bool? Bool { get; private set; }
-        public AsrInt? Integer { get; private set; }
-        public object? Obj { get; }
-        public IEnumerable<object>? Objs { get; }
+        private IARRef? Reference { get; }
+        private IEnumerable<IARRef>? References { get; }
+        private IMetaObjectInstance? Meta { get; }
+        private IEnumerable<IMetaObjectInstance>? Metas { get; }
+        private Enum? Enum { get; set; }
+        private IMetaCollectionInstance? Enums { get; }
+        private bool? Bool { get; set; }
+        private AsrInt? Integer { get; }
+        private object? Obj { get; }
+        private IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
         public event ChangedEventHandler? Changed;
@@ -59,7 +64,11 @@ namespace ArxmlEditor.Model
             {
                 if (role != null)
                 {
-                    if (role.IsMeta())
+                    if (role.IsRefernce())
+                    {
+                        Type = ArCommonType.Reference;
+                    }
+                    else if (role.IsMeta())
                     {
                         Type = ArCommonType.Meta;
                     }
@@ -74,7 +83,7 @@ namespace ArxmlEditor.Model
                     else if (role.IsInteger())
                     {
                         Type = ArCommonType.Integer;
-                    }
+                    } 
                     else
                     {
                         Type = ArCommonType.Other;
@@ -87,7 +96,41 @@ namespace ArxmlEditor.Model
             }
             else
             {
-                if (obj is IMetaObjectInstance meta)
+                if (obj is IARRef r)
+                {
+                    if (role == null)
+                    {
+                        Reference = r;
+                        Type = ArCommonType.Reference;
+                    }
+                    else if (role.IsRefernce())
+                    {
+                        Reference = r;
+                        Type = ArCommonType.Reference;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IARRef");
+                    }
+                }
+                else if (obj is IEnumerable<IARRef> rs)
+                {
+                    if (role == null)
+                    {
+                        References = rs;
+                        Type = ArCommonType.References;
+                    }
+                    else if (role.IsRefernce())
+                    {
+                        References = rs;
+                        Type = ArCommonType.References;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj and role not match");
+                    }
+                }
+                else if (obj is IMetaObjectInstance meta)
                 {
                     if (role == null)
                     {
@@ -242,6 +285,57 @@ namespace ArxmlEditor.Model
             {
                 Parent = this;
             }
+        }
+
+        public IARRef? TryGetReference()
+        {
+            if (Type == ArCommonType.Reference)
+            {
+                return Reference;
+            }
+            return null;
+        }
+
+        public IARRef GetReference()
+        {
+            if ((Type == ArCommonType.Reference) && (Reference != null))
+            {
+                return Reference;
+            }
+            throw new Exception("Type is not Reference");
+        }
+
+        public IEnumerable<IARRef>? TryGetReferences()
+        {
+            if (Type == ArCommonType.References)
+            {
+                return References;
+            }
+            return null;
+        }
+
+        public IEnumerable<IARRef> GetReferences()
+        {
+            if ((Type == ArCommonType.References) && (References != null))
+            {
+                return References;
+            }
+            throw new Exception("Type is not References");
+        }
+
+        public List<ArCommon> GetCommonReferences()
+        {
+            var result = new List<ArCommon>();
+
+            if ((Type == ArCommonType.References) && (References != null))
+            {
+                foreach (var r in References)
+                {
+                    result.Add(new ArCommon(r, Role, this));
+                }
+                return result;
+            }
+            throw new Exception("Type is not References");
         }
 
         public IMetaObjectInstance? TryGetMeta()
@@ -549,10 +643,20 @@ namespace ArxmlEditor.Model
         public List<ArCommon> GetAllMember()
         {
             List<ArCommon> result = new();
+            IMetaObjectInstance? meta = null;
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                foreach (var o in Meta.MetaAllRoles)
+                meta = Meta;
+            }
+            else if ((Type == ArCommonType.Reference) && (Reference != null))
+            {
+                meta = Reference;
+            }
+
+            if (meta != null)
+            {
+                foreach (var o in meta.MetaAllRoles)
                 {
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
@@ -563,9 +667,9 @@ namespace ArxmlEditor.Model
                     {
                         if (o.Option())
                         {
-                            if (Meta.IsSpecified(o.Name))
+                            if (meta.IsSpecified(o.Name))
                             {
-                                result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
+                                result.Add(new ArCommon(meta.GetValue(o.Name), o, this));
                             }
                             else
                             {
@@ -574,12 +678,12 @@ namespace ArxmlEditor.Model
                         }
                         else
                         {
-                            result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
+                            result.Add(new ArCommon(meta.GetValue(o.Name), o, this));
                         }
                     }
                     else if (o.Multiply())
                     {
-                        var childObjs = Meta.GetCollectionValueRaw(o.Name);
+                        var childObjs = meta.GetCollectionValueRaw(o.Name);
 
                         if (childObjs is IMetaCollectionInstance collection)
                         {
@@ -896,6 +1000,20 @@ namespace ArxmlEditor.Model
                     }
                     return "";
 
+                case ArCommonType.Reference:
+                    if (Reference != null)
+                    {
+                        return Reference.Value.Split("/").Last();
+                    }
+                    return "";
+
+                case ArCommonType.References:
+                    if (Role != null)
+                    {
+                        return $"{Role.Name}(s)";
+                    }
+                    return "";
+
                 case ArCommonType.Other:
                     if (Obj != null)
                     {
@@ -921,8 +1039,9 @@ namespace ArxmlEditor.Model
 
         public bool IsNull()
         {
-            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && 
-                    (Integer == null) && (Bool == null) &&(Obj == null) && (Objs == null));
+            return ((Reference == null) && (References == null) && (Meta == null) && (Metas == null) &&
+                    (Enum == null) && (Enums == null) && (Integer == null) && (Bool == null) &&
+                    (Obj == null) && (Objs == null));
         }
 
         public string[] EnumCanditate()
@@ -934,6 +1053,46 @@ namespace ArxmlEditor.Model
                 foreach (var name in Enum.GetNames(Role.InterfaceType))
                 {
                     result.Add(name[1..]);
+                }
+                return result.ToArray();
+            }
+            return Array.Empty<string>();
+        }
+
+        public string[] ReferenceCanditate()
+        {
+            List<string> result = new();
+
+            if (((Type == ArCommonType.Reference) || (Type == ArCommonType.References)) && (Role != null))
+            {
+                var assembly = Assembly.GetAssembly(Role.InterfaceType);
+
+                if (assembly != null )
+                {
+                    var types = assembly.GetTypes();
+
+                    if (types != null )
+                    {
+                        var nameFound = Role.InterfaceType.Name[..^4];
+                        Type? typeFound = null;
+
+                        foreach (var type in types)
+                        {
+                            if (type.Name == nameFound)
+                            {
+                                typeFound = type;
+                                break;
+                            }
+                        }
+
+                        foreach (var type in types)
+                        {
+                            if ((type.GetInterfaces().Contains(typeFound)) && (type.Namespace == "GenTool_CsDataServerDomAsr4.InternalParser"))
+                            {
+                                result.Add(type.Name[1..]);
+                            }
+                        }
+                    }
                 }
                 return result.ToArray();
             }

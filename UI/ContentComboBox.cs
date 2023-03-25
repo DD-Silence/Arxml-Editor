@@ -28,7 +28,14 @@ namespace ArxmlEditor.UI
             Enabled = !common.IsNull();
             DropDownStyle = ComboBoxStyle.DropDownList;
             SelectedIndexChanged += ContentComboBox_SelectedIndexChanged;
-            Items.AddRange(common.EnumCanditate());
+            if (common.Parent.Type == ArCommonType.Meta)
+            {
+                Items.AddRange(common.EnumCanditate());
+            }
+            else if (common.Parent.Type == ArCommonType.Reference)
+            {
+                Items.AddRange(common.Parent.ReferenceCanditate());
+            }
             Text = common.ToString();
         }
 

@@ -29,13 +29,45 @@ namespace ArxmlEditor
             InitializeComponent();
         }
 
+        private void Main_Load(object sender, EventArgs e)
+        {
+            List<string> paths = new();
+            foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
+            {
+                paths.Add(f.FullName);
+            }
+            arFile = new ArFile(paths);
+            var rootNode = tvContent.Nodes.Add("Autosar");
+            var rootCommon = new ArCommon(arFile.root, null, null);
+            rootNode.Tag = (rootCommon, true);
+            tvContent.ShowNodeToolTips = true;
+
+            ConstructTreeView(rootCommon, rootNode, true);
+        }
+
         private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
         {
             foreach (var m in arObj.GetExistingMember())
             {
                 if (m.Role != null)
                 {
-                    if (m.Type == ArCommonType.Metas)
+                    if (m.Type == ArCommonType.References)
+                    {
+                        var references = m.GetCommonReferences();
+                        var nodeCurrent = node.Nodes.Add($"{m}");
+
+                        nodeCurrent.Tag = (m, true);
+                        foreach (var r in references)
+                        {
+                            var nodeCurrent2 = nodeCurrent.Nodes.Add($"{r}");
+                            nodeCurrent2.Tag = (r, false);
+                            if (first)
+                            {
+                                ConstructTreeView(r, nodeCurrent2, false);
+                            }
+                        }
+                    }
+                    else if (m.Type == ArCommonType.Metas)
                     {
                         var mObjs = m.GetCommonMetas();
                         var nodeCurrent = node.Nodes.Add($"{m}");
@@ -62,7 +94,7 @@ namespace ArxmlEditor
                             }
                         }
                     }
-                    else if (m.Type == ArCommonType.Meta)
+                    else if ((m.Type == ArCommonType.Meta) || (m.Type == ArCommonType.Reference))
                     {
                         var nodeCurrent = node.Nodes.Add($"{m}");
                         nodeCurrent.Tag = (m, false);
@@ -73,21 +105,6 @@ namespace ArxmlEditor
                     }
                 }
             }
-        }
-
-        private void Main_Load(object sender, EventArgs e)
-        {
-            List<string> paths = new();
-            foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
-            {
-                paths.Add(f.FullName);
-            }
-            arFile = new ArFile(paths);
-            var rootNode = tvContent.Nodes.Add("Autosar");
-            rootNode.Tag = (arFile.root, true);
-            tvContent.ShowNodeToolTips = true;
-
-            ConstructTreeView(new ArCommon(arFile.root, null, null), rootNode, true);
         }
 
         private void ConstructAddDropItems(TreeNode node, ArCommon common, ToolStripDropDownItem container)
