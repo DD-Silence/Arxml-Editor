@@ -324,6 +324,16 @@ namespace ArxmlEditor
                         tpContent.Controls.Add(t);
                     }
                 }
+                else if (c2.Type == ArCommonType.Integer)
+                {
+                    if (c2.Role != null)
+                    {
+                        var l = new ContentLabel(c2, tbBreif);
+                        tpContent.Controls.Add(l);
+                        var t = new ContentTextBox(c2);
+                        tpContent.Controls.Add(t);
+                    }
+                }
             }
         }
 

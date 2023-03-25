@@ -110,9 +110,18 @@ namespace ArxmlEditor.Model
             return false;
         }
 
+        public static bool IsInteger(this IMetaRI role)
+        {
+            if (role.InterfaceType.Name == "AsrInt")
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static bool IsOther(this IMetaRI role)
         {
-            return (!role.IsMeta()) && (!role.IsEnum()) && (!role.IsBool());
+            return (!role.IsMeta()) && (!role.IsEnum()) && (!role.IsBool()) && (!role.IsInteger());
         }
     }
 }

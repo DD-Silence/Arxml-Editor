@@ -31,6 +31,7 @@ namespace ArxmlEditor.Model
         Enum,
         Enums,
         Bool,
+        Integer,
         Other,
         Others,
     };
@@ -45,6 +46,7 @@ namespace ArxmlEditor.Model
         public Enum? Enum { get; private set; }
         public IMetaCollectionInstance? Enums { get; }
         public bool? Bool { get; private set; }
+        public AsrInt? Integer { get; private set; }
         public object? Obj { get; }
         public IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
@@ -64,6 +66,14 @@ namespace ArxmlEditor.Model
                     else if (role.IsEnum())
                     {
                         Type = ArCommonType.Enum;
+                    }
+                    else if (role.IsBool())
+                    {
+                        Type = ArCommonType.Bool;
+                    }
+                    else if (role.IsInteger())
+                    {
+                        Type = ArCommonType.Integer;
                     }
                     else
                     {
@@ -167,6 +177,23 @@ namespace ArxmlEditor.Model
                     else
                     {
                         throw new ArgumentException($"ArCommon initialization fail, obj is not IMetaCollectionInstance");
+                    }
+                }
+                else if (obj is AsrInt v)
+                {
+                    if (role == null)
+                    {
+                        Integer = v;
+                        Type = ArCommonType.Integer;
+                    }
+                    else if (role.IsInteger())
+                    {
+                        Integer = v;
+                        Type = ArCommonType.Integer;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not AsrInt");
                     }
                 }
                 else if (obj is IEnumerable<object> objs)
@@ -372,9 +399,16 @@ namespace ArxmlEditor.Model
 
         public bool GetBool()
         {
-            if ((Type == ArCommonType.Bool) && (Bool != null))
+            if (Type == ArCommonType.Bool)
             {
-                return (bool)Bool;
+                if (Bool != null)
+                {
+                    return (bool)Bool;
+                }
+                else
+                {
+                    return false;
+                }
             }
             throw new Exception("Type is not Bool");
         }
@@ -848,6 +882,20 @@ namespace ArxmlEditor.Model
                     }
                     return "";
 
+                case ArCommonType.Integer:
+                    if (Integer != null)
+                    {
+                        if (Integer.Signed)
+                        {
+                            return Integer.SignedValue.ToString();
+                        }
+                        else
+                        {
+                            return Integer.UnsignedValue.ToString();
+                        }
+                    }
+                    return "";
+
                 case ArCommonType.Other:
                     if (Obj != null)
                     {
@@ -873,7 +921,8 @@ namespace ArxmlEditor.Model
 
         public bool IsNull()
         {
-            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && (Bool == null) &&(Obj == null) && (Objs == null));
+            return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && 
+                    (Integer == null) && (Bool == null) &&(Obj == null) && (Objs == null));
         }
 
         public string[] EnumCanditate()
@@ -974,6 +1023,52 @@ namespace ArxmlEditor.Model
                 if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
                 {
                     Parent.Meta.SetValue(Role.Name, newValue);
+                    Changed?.Invoke();
+                }
+            }
+            else if ((Type == ArCommonType.Integer) && (Role != null) && (Integer != null))
+            {
+                if (newValue is string s)
+                {
+                    if (UInt64.TryParse(s, out ulong v))
+                    {
+                        Integer.Signed = false;
+                        Integer.UnsignedValue = v;
+                    }
+                    else if (Int64.TryParse(s, out long sv))
+                    {
+                        Integer.Signed = true;
+                        Integer.SignedValue = sv;
+                    }
+                }
+            }
+        }
+
+        public void SetOthers(int index, object newValue)
+        {
+            if ((Type == ArCommonType.Others) && (Role != null) && (Objs != null))
+            {
+                if ((index >= 0) && (index < Objs.Count()))
+                {
+                    List<object> results = new();
+                    int count = 0;
+                    foreach (var o in Objs)
+                    {
+                        if (count == index)
+                        {
+                            results.Add(newValue);
+                        }
+                        else
+                        {
+                            results.Add(o);
+                        }
+                        count++;
+                    }
+                    Parent.RemoveAllObject(Role, false);
+                    foreach (var e in results)
+                    {
+                        Parent.AddObject(Role, e, false);
+                    }
                     Changed?.Invoke();
                 }
             }
