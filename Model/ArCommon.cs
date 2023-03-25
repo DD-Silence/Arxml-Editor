@@ -32,6 +32,7 @@ namespace ArxmlEditor.Model
         Enums,
         Bool,
         Integer,
+        Reference,
         Other,
         Others,
     };
@@ -46,7 +47,8 @@ namespace ArxmlEditor.Model
         public Enum? Enum { get; private set; }
         public IMetaCollectionInstance? Enums { get; }
         public bool? Bool { get; private set; }
-        public AsrInt? Integer { get; private set; }
+        public AsrInt? Integer { get; }
+        public IARRef? Reference { get;}
         public object? Obj { get; }
         public IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
@@ -74,6 +76,10 @@ namespace ArxmlEditor.Model
                     else if (role.IsInteger())
                     {
                         Type = ArCommonType.Integer;
+                    }
+                    else if (role.IsRefernce())
+                    {
+                        Type = ArCommonType.Reference;
                     }
                     else
                     {
@@ -194,6 +200,23 @@ namespace ArxmlEditor.Model
                     else
                     {
                         throw new ArgumentException($"ArCommon initialization fail, obj is not AsrInt");
+                    }
+                }
+                else if (obj is IARRef r)
+                {
+                    if (role == null)
+                    {
+                        Reference = r;
+                        Type = ArCommonType.Reference;
+                    }
+                    else if (role.IsRefernce())
+                    {
+                        Reference = r;
+                        Type = ArCommonType.Reference;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"ArCommon initialization fail, obj is not IARRef");
                     }
                 }
                 else if (obj is IEnumerable<object> objs)
@@ -896,6 +919,13 @@ namespace ArxmlEditor.Model
                     }
                     return "";
 
+                case ArCommonType.Reference:
+                    if (Reference != null)
+                    {
+                        return Reference.Value;
+                    }
+                    return "";
+
                 case ArCommonType.Other:
                     if (Obj != null)
                     {
@@ -922,7 +952,8 @@ namespace ArxmlEditor.Model
         public bool IsNull()
         {
             return ((Meta == null) && (Metas == null) && (Enum == null) && (Enums == null) && 
-                    (Integer == null) && (Bool == null) &&(Obj == null) && (Objs == null));
+                    (Integer == null) && (Bool == null) && (Reference == null) &&
+                    (Obj == null) && (Objs == null));
         }
 
         public string[] EnumCanditate()

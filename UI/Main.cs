@@ -62,7 +62,7 @@ namespace ArxmlEditor
                             }
                         }
                     }
-                    else if (m.Type == ArCommonType.Meta)
+                    else if ((m.Type == ArCommonType.Meta) || (m.Type == ArCommonType.Reference))
                     {
                         var nodeCurrent = node.Nodes.Add($"{m}");
                         nodeCurrent.Tag = (m, false);
