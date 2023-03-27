@@ -23,15 +23,27 @@ namespace ArxmlEditor.Model
     internal class ArFile
     {
         private readonly List<string> paths = new();
-        public readonly IAUTOSAR root;
+        public readonly IAUTOSAR? root;
 
         public ArFile(List<string> filePaths)
         {
-            paths = filePaths ?? throw new ArgumentNullException(nameof(filePaths));
+            paths = filePaths;
 
             var domain = DomainFactory.Instance.Create();
-            domain.Load(paths.ToArray(), true);
-            root = domain.Model;
+            if (domain != null)
+            {
+                domain.Load(paths.ToArray(), true);
+                root = domain.Model;
+            }
+            else
+            {
+                throw new Exception("Fail to create domain.");
+            }
+        }
+
+        public void Save()
+        {
+            root?.Domain.Save();
         }
     }
 }

@@ -59,8 +59,8 @@
             tvContent.Name = "tvContent";
             tvContent.Size = new Size(699, 883);
             tvContent.TabIndex = 0;
-            tvContent.BeforeExpand += tvContent_BeforeExpand;
-            tvContent.MouseClick += tvContent_MouseClick;
+            tvContent.BeforeExpand += BeforeExpand_tvContent;
+            tvContent.MouseClick += MouseClick_tvContent;
             // 
             // cmMember
             // 

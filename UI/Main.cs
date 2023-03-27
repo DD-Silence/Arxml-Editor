@@ -141,7 +141,7 @@ namespace ArxmlEditor
             }
         }
 
-        private void tvContent_MouseClick(object sender, MouseEventArgs e)
+        private void MouseClick_tvContent(object sender, MouseEventArgs e)
         {
             var nodeSelect = tvContent.GetNodeAt(new Point(e.X, e.Y));
             tvContent.SelectedNode = nodeSelect;
@@ -180,6 +180,13 @@ namespace ArxmlEditor
                                 }
                             }
 
+                            if (c.Type == ArCommonType.Reference)
+                            {
+                                var itemReference = cmMember.Items.Add("Jump");
+                                itemReference.Click += DropRefHandler;
+                                itemReference.Tag = (nodeSelect, c);
+                            }
+
                             if (c.CanDelete())
                             {
                                 var itemDel = cmMember.Items.Add("Del");
@@ -200,7 +207,7 @@ namespace ArxmlEditor
         {
             if (sender is ToolStripDropDownItem dropItem)
             {
-                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c, IMetaRI role))
+                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c, Meta.Iface.IMetaRI role))
                 {
                     c.Add(role);
                     nodeSelect.Nodes.Clear();
@@ -209,7 +216,7 @@ namespace ArxmlEditor
                 }
                 else if (dropItem.Tag is (TreeNode, ArCommon, Type type2))
                 {
-                    if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, IMetaRI role3))
+                    if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, Meta.Iface.IMetaRI role3))
                     {
                         c3.Add(role3, type2);
                         nodeSelect3.Nodes.Clear();
@@ -257,7 +264,20 @@ namespace ArxmlEditor
             }
         }
 
-        private void tvContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        private void DropRefHandler(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripDropDownItem dropItem)
+            {
+                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c))
+                {
+                    var value = c.GetReference().Value;
+                    UpdateOutput(nodeSelect.Text);
+                    UpdateOutput(value);
+                }
+            }
+        }
+
+        private void BeforeExpand_tvContent(object sender, TreeViewCancelEventArgs e)
         {
             if (e.Node is TreeNode nodeSelect)
             {
@@ -365,11 +385,6 @@ namespace ArxmlEditor
         private void UpdateBrief(string brief)
         {
             tbBreif.Text = brief;
-        }
-
-        private void AddBrief(string brief)
-        {
-            tbBreif.Text += brief;
         }
 
         private void UpdateOutput(string message)
