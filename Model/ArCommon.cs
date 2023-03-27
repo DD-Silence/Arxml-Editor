@@ -1276,6 +1276,40 @@ namespace ArxmlEditor.Model
             return Array.Empty<IReferrable>();
         }
 
+        public string GetPrimitiveConstraints()
+        {
+            string result = "";
+
+            if (Role != null)
+            {
+                if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
+                {
+                    foreach (var i in Parent.Meta.InterfaceType.GetTypeInfo().ImplementedInterfaces)
+                    {
+                        var members = i.GetMember(Role.Name);
+                        if (members.Length > 0)
+                        {
+                            foreach (var m in members)
+                            {
+                                foreach (var d in m.GetCustomAttributesData())
+                                {
+                                    if (d.AttributeType.Name == "PrimitiveConstraintsAttribute")
+                                    {
+                                        foreach (var a in d.ConstructorArguments)
+                                        {
+                                            result += $"^{a.ToString()[1..^1]}";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         private string GetRoleTypeArDocument()
         {
             string result = "";
@@ -1375,7 +1409,6 @@ namespace ArxmlEditor.Model
                                     }
                                 }
                             }
-                            break;
                         }
                     }
                 }

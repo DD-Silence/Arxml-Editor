@@ -18,13 +18,13 @@
 using ArxmlEditor.Model;
 using ArxmlEditor.UI;
 using GenTool_CsDataServerDomAsr4.Iface;
+using System.Text.RegularExpressions;
 
 namespace ArxmlEditor
 {
     public partial class Main : Form
     {
         private ArFile? arFile;
-        private string inputBuffer = "";
         public Main()
         {
             InitializeComponent();
@@ -42,7 +42,6 @@ namespace ArxmlEditor
             var rootCommon = new ArCommon(arFile.root, null, null);
             rootNode.Tag = (rootCommon, true);
             tvContent.ShowNodeToolTips = true;
-            tvContent.BeforeLabelEdit += BeforeLabelEdit_tvContent;
             tvContent.AfterLabelEdit += AfterLabelEdit_tvContent;
 
             ConstructTreeView(rootCommon, rootNode, true);
@@ -151,11 +150,22 @@ namespace ArxmlEditor
 
         private void AfterLabelEdit_tvContent(object? sender, NodeLabelEditEventArgs e)
         {
-            if (e.Node.Tag is (ArCommon c, bool _))
+            if (e.Label != null)
             {
-                if (c.GetMeta() is IReferrable referrable)
+                if (e.Node.Tag is (ArCommon c, bool _))
                 {
-                    referrable.ShortName = e.Label;
+                    if (c.GetMeta() is IReferrable referrable)
+                    {
+                        var regex = new Regex("^[a-zA-Z][a-zA-Z0-9_]*");
+                        if (regex.IsMatch(e.Label))
+                        {
+                            referrable.ShortName = e.Label;
+                        }
+                        else
+                        {
+                            e.CancelEdit = true;
+                        }
+                    }
                 }
             }
         }

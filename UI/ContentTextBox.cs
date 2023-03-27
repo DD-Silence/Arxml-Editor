@@ -16,17 +16,21 @@
  */
 
 using ArxmlEditor.Model;
+using System.Text.RegularExpressions;
 
 namespace ArxmlEditor.UI
 {
     internal class ContentTextBox : TextBox
     {
+        string lastCorrectText = "";
+
         public ContentTextBox(ArCommon common)
         {
             Tag = common;
             Text = common.ToString();
+            lastCorrectText = Text;
             Width = 250;
-            TextChanged += ContentTextBox_TextChanged;
+            LostFocus += ContentTextBox_LostFocus;
 
             if (common.Role != null)
             {
@@ -45,11 +49,29 @@ namespace ArxmlEditor.UI
             }
         }
 
-        private void ContentTextBox_TextChanged(object? sender, EventArgs e)
+        private void ContentTextBox_LostFocus(object? sender, EventArgs e)
         {
             if (Tag is ArCommon c)
             {
-                c.SetOther(Text);
+                var expression = c.GetPrimitiveConstraints();
+                if (expression == "")
+                {
+                    c.SetOther(Text);
+                    lastCorrectText = Text;
+                }
+                else
+                {
+                    var regex = new Regex(expression);
+                    if (regex.IsMatch(Text))
+                    {
+                        c.SetOther(Text);
+                        lastCorrectText = Text;
+                    }
+                    else
+                    {
+                        Text = lastCorrectText;
+                    }
+                }
             }
         }
     }
