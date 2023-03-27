@@ -17,13 +17,14 @@
 
 using ArxmlEditor.Model;
 using ArxmlEditor.UI;
-using Meta.Iface;
+using GenTool_CsDataServerDomAsr4.Iface;
 
 namespace ArxmlEditor
 {
     public partial class Main : Form
     {
         private ArFile? arFile;
+        private string inputBuffer = "";
         public Main()
         {
             InitializeComponent();
@@ -41,6 +42,8 @@ namespace ArxmlEditor
             var rootCommon = new ArCommon(arFile.root, null, null);
             rootNode.Tag = (rootCommon, true);
             tvContent.ShowNodeToolTips = true;
+            tvContent.BeforeLabelEdit += BeforeLabelEdit_tvContent;
+            tvContent.AfterLabelEdit += AfterLabelEdit_tvContent;
 
             ConstructTreeView(rootCommon, rootNode, true);
         }
@@ -141,6 +144,22 @@ namespace ArxmlEditor
             }
         }
 
+        private void BeforeLabelEdit_tvContent(object? sender, NodeLabelEditEventArgs e)
+        {
+            inputBuffer = e.Node.Text;
+        }
+
+        private void AfterLabelEdit_tvContent(object? sender, NodeLabelEditEventArgs e)
+        {
+            if (e.Node.Tag is (ArCommon c, bool _))
+            {
+                if (c.GetMeta() is IReferrable referrable)
+                {
+                    referrable.ShortName = e.Label;
+                }
+            }
+        }
+
         private void MouseClick_tvContent(object sender, MouseEventArgs e)
         {
             var nodeSelect = tvContent.GetNodeAt(new Point(e.X, e.Y));
@@ -157,6 +176,7 @@ namespace ArxmlEditor
                             {
                                 UpdateBrief(c.GetDesc());
                             }
+                            tvContent.LabelEdit = c.IsReferrable();
                         }
                     }
                     break;

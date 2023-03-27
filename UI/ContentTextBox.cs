@@ -26,8 +26,23 @@ namespace ArxmlEditor.UI
             Tag = common;
             Text = common.ToString();
             Width = 250;
-            Enabled = !common.IsNull();
             TextChanged += ContentTextBox_TextChanged;
+
+            if (common.Role != null)
+            {
+                if (common.Role.Name == "ShortName")
+                {
+                    Enabled = false;
+                }
+                else
+                {
+                    Enabled = !common.IsNull();
+                }
+            }
+            else
+            {
+                Enabled = false;
+            }
         }
 
         private void ContentTextBox_TextChanged(object? sender, EventArgs e)

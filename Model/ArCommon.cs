@@ -18,9 +18,8 @@
 using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
+using System.Data;
 using System.Reflection;
-using System.Security.Cryptography.Xml;
-using System.Xml.Linq;
 
 namespace ArxmlEditor.Model
 {
@@ -1003,14 +1002,14 @@ namespace ArxmlEditor.Model
                 case ArCommonType.Reference:
                     if (Reference != null)
                     {
-                        return Reference.Value.Split("/").Last();
+                        return $"{Reference.Value.Split("/").Last()}(R)";
                     }
                     return "";
 
                 case ArCommonType.References:
                     if (Role != null)
                     {
-                        return $"{Role.Name}(s)";
+                        return $"{Role.Name}(Rs)";
                     }
                     return "";
 
@@ -1042,6 +1041,18 @@ namespace ArxmlEditor.Model
             return ((Reference == null) && (References == null) && (Meta == null) && (Metas == null) &&
                     (Enum == null) && (Enums == null) && (Integer == null) && (Bool == null) &&
                     (Obj == null) && (Objs == null));
+        }
+
+        public bool IsReferrable()
+        {
+            if ((Type == ArCommonType.Meta) && (Meta != null))
+            {
+                if (Meta is IReferrable)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public string[] EnumCanditate()
@@ -1184,6 +1195,11 @@ namespace ArxmlEditor.Model
                     Parent.Meta.SetValue(Role.Name, newValue);
                     Changed?.Invoke();
                 }
+                else if ((Parent.Type == ArCommonType.Reference) && (Parent.Reference != null))
+                {
+                    Parent.Reference.SetValue(Role.Name, newValue);
+                    Changed?.Invoke();
+                }
             }
             else if ((Type == ArCommonType.Integer) && (Role != null) && (Integer != null))
             {
@@ -1231,6 +1247,33 @@ namespace ArxmlEditor.Model
                     Changed?.Invoke();
                 }
             }
+        }
+
+        public IReferrable[] GetReferenceRaw()
+        {
+            List<IReferrable> result = new();
+
+            if ((Type == ArCommonType.Reference) && (Reference != null))
+            {
+                var property = Reference.GetType().GetProperty($"ObjectList");
+                if (property != null)
+                {
+                    var value = property.GetValue(Reference);
+
+                    if (value is IMetaCollectionInstance metas)
+                    {
+                        foreach (var meta in metas)
+                        {
+                            if (meta is IReferrable referrable)
+                            {
+                                result.Add(referrable);
+                            }
+                        }
+                    }
+                }
+                return result.ToArray();
+            }
+            return Array.Empty<IReferrable>();
         }
 
         private string GetRoleTypeArDocument()
