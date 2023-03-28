@@ -143,11 +143,6 @@ namespace ArxmlEditor
             }
         }
 
-        private void BeforeLabelEdit_tvContent(object? sender, NodeLabelEditEventArgs e)
-        {
-            inputBuffer = e.Node.Text;
-        }
-
         private void AfterLabelEdit_tvContent(object? sender, NodeLabelEditEventArgs e)
         {
             if (e.Label != null)
@@ -160,6 +155,7 @@ namespace ArxmlEditor
                         if (regex.IsMatch(e.Label))
                         {
                             referrable.ShortName = e.Label;
+                            ConstructContent(c);
                         }
                         else
                         {
