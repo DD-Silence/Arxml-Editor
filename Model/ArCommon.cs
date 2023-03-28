@@ -892,7 +892,12 @@ namespace ArxmlEditor.Model
                     if (role.Option())
                     {
                         Meta.SetSpecified(role.Name, true);
-                        var newCommon = new ArCommon(Meta.GetValue(role.Name), role, this);
+                        var newObj = Meta.GetValue(role.Name);
+                        if (newObj is IReferrable referrable)
+                        {
+                            referrable.ShortName = role.Name;
+                        }
+                        var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
                         Changed?.Invoke();
                         return newCommon;
@@ -903,6 +908,13 @@ namespace ArxmlEditor.Model
                     if (role.MultipleInterfaceTypes == true)
                     {
                         var newObj = Meta.AddNew(role.Name, type);
+                        if (newObj is IReferrable referrable)
+                        {
+                            if (type != null)
+                            {
+                                referrable.ShortName = type.Name[1..];
+                            }
+                        }
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
                         Changed?.Invoke();
@@ -913,6 +925,10 @@ namespace ArxmlEditor.Model
                         if (role.IsMeta())
                         {
                             var newObj = Meta.AddNew(role.Name, role.InterfaceType);
+                            if (newObj is IReferrable referrable)
+                            {
+                                referrable.ShortName = role.Name;
+                            }
                             var newCommon = new ArCommon(newObj, role, this);
                             newCommon.Check();
                             Changed?.Invoke();
