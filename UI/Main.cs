@@ -208,9 +208,15 @@ namespace ArxmlEditor
 
                             if (c.Type == ArCommonType.Reference)
                             {
-                                var itemReference = cmMember.Items.Add("Jump");
-                                itemReference.Click += DropRefHandler;
-                                itemReference.Tag = (nodeSelect, c);
+                                var itemEdit = cmMember.Items.Add("Edit");
+                                if (itemEdit is ToolStripDropDownItem dropItemEdit)
+                                {
+                                    foreach (var reference in c.ReferenceCanditate())
+                                    {
+                                        var itemEditSub = dropItemEdit.DropDownItems.Add(reference);
+                                        itemEditSub.MouseHover += ItemEdit_MouseHover;
+                                    }
+                                }
                             }
 
                             if (c.CanDelete())
@@ -226,6 +232,38 @@ namespace ArxmlEditor
 
                 default:
                     break;
+            }
+        }
+
+        private void ItemEdit_MouseHover(object? sender, EventArgs e)
+        {
+            if ((arFile != null) && (sender is ToolStripDropDownItem dropItem))
+            {
+                if (arFile.root != null)
+                {
+                    foreach (var obj in arFile.root.AllObjects)
+                    {
+                        if ((obj.InterfaceType.Name[1..] == dropItem.Text) && (obj is IReferrable referrable))
+                        {
+                            var item = dropItem.DropDownItems.Add(referrable.ShortName);
+                            item.Tag = referrable;
+                            item.Click += ItemEdit_MouseHover2;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ItemEdit_MouseHover2(object? sender, EventArgs e)
+        {
+            if ((sender is ToolStripDropDownItem dropItem) && (tvContent.SelectedNode.Tag is (ArCommon c, bool _)))
+            {
+                if ((c.Type == ArCommonType.Reference) && (dropItem.Tag is IReferrable referrable))
+                {
+                    c.GetReference().DestType = referrable.IdType;
+                    c.GetReference().Value = referrable.AsrPath;
+                    tvContent.SelectedNode.Text = $"{referrable.ShortName}(R)";
+                }
             }
         }
 
@@ -286,19 +324,6 @@ namespace ArxmlEditor
                         parentCommon = parentCommon.Parent;
                         parentNode = parentNode.Parent;
                     }
-                }
-            }
-        }
-
-        private void DropRefHandler(object? sender, EventArgs e)
-        {
-            if (sender is ToolStripDropDownItem dropItem)
-            {
-                if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c))
-                {
-                    var value = c.GetReference().Value;
-                    UpdateOutput(nodeSelect.Text);
-                    UpdateOutput(value);
                 }
             }
         }

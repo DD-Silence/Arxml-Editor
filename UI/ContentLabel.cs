@@ -29,8 +29,11 @@ namespace ArxmlEditor.UI
             {
                 Text = common.Role.Name;
             }
-            MouseClick += ContentLabel_MouseClick;
-            ContextMenuStrip = new ContextMenuStrip();
+            if (common.Parent.Type != ArCommonType.Reference)
+            {
+                MouseClick += ContentLabel_MouseClick;
+                ContextMenuStrip = new ContextMenuStrip();
+            }
         }
 
         private void ContentLabel_MouseClick(object? sender, MouseEventArgs e)

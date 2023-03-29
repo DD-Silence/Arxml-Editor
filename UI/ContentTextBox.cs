@@ -34,7 +34,11 @@ namespace ArxmlEditor.UI
 
             if (common.Role != null)
             {
-                if (common.Role.Name == "ShortName")
+                if (common.Parent.Type == ArCommonType.Reference)
+                {
+                    Enabled = false;
+                }
+                else if (common.Role.Name == "ShortName")
                 {
                     Enabled = false;
                 }

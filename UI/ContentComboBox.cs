@@ -35,6 +35,7 @@ namespace ArxmlEditor.UI
             else if (common.Parent.Type == ArCommonType.Reference)
             {
                 Items.AddRange(common.Parent.ReferenceCanditate());
+                Enabled = false;
             }
             Text = common.ToString();
         }
