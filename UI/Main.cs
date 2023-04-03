@@ -239,6 +239,23 @@ namespace ArxmlEditor
                                 }
                             }
 
+                            if (c.IsReferrable())
+                            {
+                                var referencedFrom = c.GetReferencedFrom();
+
+                                if (referencedFrom.Count > 0)
+                                {
+                                    var itemReferencedFrom = cmMember.Items.Add("Referenced From");
+                                    if (itemReferencedFrom is ToolStripDropDownItem dropItemReferencedFrom)
+                                    {
+                                        foreach (var reference in referencedFrom)
+                                        {
+                                            dropItemReferencedFrom.DropDownItems.Add(reference.ShortName);
+                                        }
+                                    }
+                                }
+                            }
+
                             if (c.CanDelete())
                             {
                                 var itemDel = cmMember.Items.Add("Del");

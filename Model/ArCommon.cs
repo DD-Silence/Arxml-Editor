@@ -600,6 +600,25 @@ namespace ArxmlEditor.Model
             return result;
         }
 
+        public List<IReferrable> GetReferencedFrom()
+        {
+            List<IReferrable> result = new();
+            if (Meta.GetCollectionValueRaw("ReferencedFrom") is IMetaCollectionInstance collection)
+            {
+                foreach (var c in collection)
+                {
+                    if (c is IMetaObjectInstance meta)
+                    {
+                        if (meta.Owner is IReferrable referrable)
+                        {
+                            result.Add(referrable);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         public List<IMetaRI> GetCandidateMember()
         {
             List<IMetaRI> result = new();
