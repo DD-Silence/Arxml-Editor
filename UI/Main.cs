@@ -130,7 +130,27 @@ namespace ArxmlEditor
                                 item.Click += DropAddHandler;
                                 items.Add(item);
                             }
-                            dropItem2.DropDownItems.AddRange(items.ToArray());
+                            if (items.Count < 20)
+                            {
+                                dropItem2.DropDownItems.AddRange(items.ToArray());
+                            }
+                            else
+                            {
+                                var count = 0;
+                                ToolStripItem? stripItem3 = null;
+                                foreach (var item in items)
+                                {
+                                    if (count % 20 == 0)
+                                    {
+                                        stripItem3 = dropItem2.DropDownItems.Add($"{count / 20 * 20}-{Math.Min(items.Count, count / 20 * 20 + 19)}");
+                                    }
+                                    if (stripItem3 is ToolStripDropDownItem dropItem3)
+                                    {
+                                        dropItem3.DropDownItems.Add(item);
+                                    }
+                                    count++;
+                                }
+                            }
                             toolAdd.Tag = (node, common, c);
                         }
                         else
@@ -241,13 +261,42 @@ namespace ArxmlEditor
             {
                 if (arFile.root != null)
                 {
+                    var result = new List<IReferrable>();
                     foreach (var obj in arFile.root.AllObjects)
                     {
                         if ((obj.InterfaceType.Name[1..] == dropItem.Text) && (obj is IReferrable referrable))
                         {
+                            result.Add(referrable);
+                        }
+                    }
+
+                    if (result.Count <= 20)
+                    {
+                        foreach (var referrable in result)
+                        {
                             var item = dropItem.DropDownItems.Add(referrable.ShortName);
                             item.Tag = referrable;
                             item.Click += ItemEdit_MouseHover2;
+                        }
+                    }
+                    else
+                    {
+                        var count = 0;
+                        ToolStripItem? stripItem = null;
+
+                        foreach (var referrable in result)
+                        {
+                            if (count % 20 == 0)
+                            {
+                                stripItem = dropItem.DropDownItems.Add($"{count / 20 * 20}-{Math.Min(result.Count, count / 20 * 20 + 19)}");
+                            }
+                            if (stripItem is ToolStripDropDownItem dropItem2)
+                            {
+                                var item = dropItem2.DropDownItems.Add(referrable.ShortName);
+                                item.Tag = referrable;
+                                item.Click += ItemEdit_MouseHover2;
+                            }
+                            count++;
                         }
                     }
                 }
@@ -286,6 +335,13 @@ namespace ArxmlEditor
                         nodeSelect3.Nodes.Clear();
                         ConstructTreeView(c3, nodeSelect3, true);
                         nodeSelect3.Expand();
+                    }
+                    else if (dropItem.OwnerItem.OwnerItem.Tag is (TreeNode nodeSelect4, ArCommon c4, Meta.Iface.IMetaRI role4))
+                    {
+                        c4.Add(role4, type2);
+                        nodeSelect4.Nodes.Clear();
+                        ConstructTreeView(c4, nodeSelect4, true);
+                        nodeSelect4.Expand();
                     }
                 }
             }
