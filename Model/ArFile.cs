@@ -22,13 +22,23 @@ namespace ArxmlEditor.Model
 {
     internal class ArFile
     {
-        private readonly List<string> paths = new();
-        public readonly IAUTOSAR? root;
+        private readonly List<string> paths;
+        public IAUTOSAR? root;
+
+        public ArFile()
+        {
+            paths = new();
+            root = null;
+        }
 
         public ArFile(List<string> filePaths)
         {
             paths = filePaths;
+            Load();
+        }
 
+        public void Load()
+        {
             var domain = DomainFactory.Instance.Create();
             if (domain != null)
             {
@@ -39,6 +49,17 @@ namespace ArxmlEditor.Model
             {
                 throw new Exception("Fail to create domain.");
             }
+        }
+
+        public bool IsEmpty()
+        {
+            return paths.Count == 0;
+        }
+
+        public void AddFile(string filePath)
+        {
+            paths.Add(filePath);
+            Load();
         }
 
         public void Save()

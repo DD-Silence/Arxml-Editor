@@ -17,14 +17,14 @@
 
 using ArxmlEditor.Model;
 using ArxmlEditor.UI;
-using GenTool_CsDataServerDomAsr4.Iface;
+using GenTool_CsDataServerDomAsr4.Iface;    
 using System.Text.RegularExpressions;
 
 namespace ArxmlEditor
 {
     public partial class Main : Form
     {
-        private ArFile? arFile;
+        private ArFile arFile = new();
         public Main()
         {
             InitializeComponent();
@@ -35,9 +35,9 @@ namespace ArxmlEditor
             List<string> paths = new();
             foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
             {
-                paths.Add(f.FullName);
+                arFile.AddFile(f.FullName);
             }
-            arFile = new ArFile(paths);
+
             var rootNode = tvContent.Nodes.Add("Autosar");
             var rootCommon = new ArCommon(arFile.root, null, null);
             rootNode.Tag = (rootCommon, true);
@@ -515,6 +515,29 @@ namespace ArxmlEditor
         {
             tbOutput.Text += Environment.NewLine;
             tbOutput.Text += message;
+        }
+
+        private void Click_miFileLoad(object sender, EventArgs e)
+        {
+            bool load = false;
+
+            if (!arFile.IsEmpty())
+            {
+                if (MessageBox.Show("Please confirm all changes have been saved", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    load = true;
+                }
+            }
+            else
+            {
+                load = true;
+            }
+
+            if (load)
+            {
+                OpenFileDialog fileDialog = new ();
+                fileDialog.ShowDialog();
+            }
         }
     }
 }
