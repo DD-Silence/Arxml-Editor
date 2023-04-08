@@ -43,6 +43,7 @@
             miFileLoad = new ToolStripMenuItem();
             miFileReload = new ToolStripMenuItem();
             miFileClear = new ToolStripMenuItem();
+            miFileNew = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)scHorizantal1).BeginInit();
             scHorizantal1.Panel1.SuspendLayout();
             scHorizantal1.Panel2.SuspendLayout();
@@ -64,7 +65,7 @@
             tvContent.Location = new Point(0, 0);
             tvContent.Margin = new Padding(3, 4, 3, 4);
             tvContent.Name = "tvContent";
-            tvContent.Size = new Size(699, 883);
+            tvContent.Size = new Size(699, 800);
             tvContent.TabIndex = 0;
             tvContent.BeforeExpand += BeforeExpand_tvContent;
             tvContent.MouseClick += MouseClick_tvContent;
@@ -89,7 +90,7 @@
             // scHorizantal1.Panel2
             // 
             scHorizantal1.Panel2.Controls.Add(tpContent);
-            scHorizantal1.Size = new Size(1581, 883);
+            scHorizantal1.Size = new Size(1581, 800);
             scHorizantal1.SplitterDistance = 699;
             scHorizantal1.TabIndex = 1;
             // 
@@ -105,13 +106,13 @@
             tpContent.Name = "tpContent";
             tpContent.RowCount = 1;
             tpContent.RowStyles.Add(new RowStyle());
-            tpContent.Size = new Size(878, 883);
+            tpContent.Size = new Size(878, 800);
             tpContent.TabIndex = 0;
             // 
             // scVertical
             // 
             scVertical.Dock = DockStyle.Fill;
-            scVertical.Location = new Point(0, 0);
+            scVertical.Location = new Point(0, 28);
             scVertical.Margin = new Padding(3, 4, 3, 4);
             scVertical.Name = "scVertical";
             scVertical.Orientation = Orientation.Horizontal;
@@ -123,8 +124,8 @@
             // scVertical.Panel2
             // 
             scVertical.Panel2.Controls.Add(scHorizantal2);
-            scVertical.Size = new Size(1581, 1133);
-            scVertical.SplitterDistance = 883;
+            scVertical.Size = new Size(1581, 1027);
+            scVertical.SplitterDistance = 800;
             scVertical.TabIndex = 2;
             // 
             // scHorizantal2
@@ -141,7 +142,7 @@
             // scHorizantal2.Panel2
             // 
             scHorizantal2.Panel2.Controls.Add(tbOutput);
-            scHorizantal2.Size = new Size(1581, 246);
+            scHorizantal2.Size = new Size(1581, 223);
             scHorizantal2.SplitterDistance = 498;
             scHorizantal2.TabIndex = 0;
             // 
@@ -154,7 +155,7 @@
             tbBreif.Name = "tbBreif";
             tbBreif.ReadOnly = true;
             tbBreif.ScrollBars = ScrollBars.Vertical;
-            tbBreif.Size = new Size(498, 246);
+            tbBreif.Size = new Size(498, 223);
             tbBreif.TabIndex = 0;
             // 
             // tbOutput
@@ -166,7 +167,7 @@
             tbOutput.Name = "tbOutput";
             tbOutput.ReadOnly = true;
             tbOutput.ScrollBars = ScrollBars.Vertical;
-            tbOutput.Size = new Size(1079, 246);
+            tbOutput.Size = new Size(1079, 223);
             tbOutput.TabIndex = 0;
             // 
             // mnMain
@@ -181,7 +182,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { miFileSave, miFileLoad, miFileReload, miFileClear });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { miFileNew, miFileSave, miFileLoad, miFileReload, miFileClear });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(48, 24);
             fileToolStripMenuItem.Text = "File";
@@ -192,6 +193,7 @@
             miFileSave.ShortcutKeys = Keys.Control | Keys.S;
             miFileSave.Size = new Size(224, 26);
             miFileSave.Text = "Save";
+            miFileSave.Click += Click_miFileSave;
             // 
             // miFileLoad
             // 
@@ -207,18 +209,28 @@
             miFileReload.ShortcutKeys = Keys.Control | Keys.R;
             miFileReload.Size = new Size(224, 26);
             miFileReload.Text = "Reload";
+            miFileReload.Click += Click_miFileReload;
             // 
             // miFileClear
             // 
             miFileClear.Name = "miFileClear";
             miFileClear.Size = new Size(224, 26);
             miFileClear.Text = "Clear";
+            miFileClear.Click += Click_miFileClear;
+            // 
+            // miFileNew
+            // 
+            miFileNew.Name = "miFileNew";
+            miFileNew.ShortcutKeys = Keys.Control | Keys.N;
+            miFileNew.Size = new Size(224, 26);
+            miFileNew.Text = "New";
+            miFileNew.Click += miFileNew_Click;
             // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1581, 1133);
+            ClientSize = new Size(1581, 1055);
             Controls.Add(scVertical);
             Controls.Add(mnMain);
             MainMenuStrip = mnMain;
@@ -262,5 +274,6 @@
         private ToolStripMenuItem miFileLoad;
         private ToolStripMenuItem miFileReload;
         private ToolStripMenuItem miFileClear;
+        private ToolStripMenuItem miFileNew;
     }
 }

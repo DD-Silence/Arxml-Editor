@@ -286,6 +286,25 @@ namespace ArxmlEditor.Model
             }
         }
 
+        public IMetaObjectRoot Root()
+        {
+            IMetaObjectRoot result;
+
+            if ((Type == ArCommonType.Reference) && (Reference != null))
+            {
+                result = Reference.Root;
+            }
+            else if ((Type == ArCommonType.Meta) && (Meta != null))
+            {
+                result = Meta.Root;
+            }
+            else
+            {
+                result = Parent.Root();
+            }
+            return result;
+        }
+
         public IARRef? TryGetReference()
         {
             if (Type == ArCommonType.Reference)

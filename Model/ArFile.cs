@@ -22,27 +22,29 @@ namespace ArxmlEditor.Model
 {
     internal class ArFile
     {
-        private readonly List<string> paths;
-        public IAUTOSAR? root;
+        private readonly List<string> paths = new();
+        public IAUTOSAR? root = null;
 
         public ArFile()
         {
-            paths = new();
-            root = null;
         }
 
-        public ArFile(List<string> filePaths)
+        public ArFile(string filePath)
         {
-            paths = filePaths;
-            Load();
+            AddFile(filePath);
         }
 
-        public void Load()
+        public ArFile(string[] filePaths)
+        {
+            AddFile(filePaths);
+        }
+
+        private void Load()
         {
             var domain = DomainFactory.Instance.Create();
             if (domain != null)
             {
-                domain.Load(paths.ToArray(), true);
+                domain.Load(paths.ToArray(), false);
                 root = domain.Model;
             }
             else
@@ -62,9 +64,36 @@ namespace ArxmlEditor.Model
             Load();
         }
 
+        public void AddFile(string[] filePaths)
+        {
+            paths.AddRange(filePaths);
+            Load();
+        }
+
         public void Save()
         {
             root?.Domain.Save();
+        }
+
+        public void Clear()
+        {
+            paths.Clear();
+            root = null;
+        }
+
+        public void Reload()
+        {
+            root?.Domain.Reload();
+        }
+
+        public void NewFile(string filePath)
+        {
+            Clear();
+            paths.Add(filePath);
+            IDomain domain = DomainFactory.Instance.Create();
+            domain.New(filePath);
+            root = domain.Model;
+            domain.Save();
         }
     }
 }

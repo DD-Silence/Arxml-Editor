@@ -17,7 +17,7 @@
 
 using ArxmlEditor.Model;
 using ArxmlEditor.UI;
-using GenTool_CsDataServerDomAsr4.Iface;    
+using GenTool_CsDataServerDomAsr4.Iface;
 using System.Text.RegularExpressions;
 
 namespace ArxmlEditor
@@ -30,6 +30,18 @@ namespace ArxmlEditor
             InitializeComponent();
         }
 
+        private void RefreshUi()
+        {
+            tvContent.Nodes.Clear();
+            var rootNode = tvContent.Nodes.Add("Autosar");
+            var rootCommon = new ArCommon(arFile.root, null, null);
+            rootNode.Tag = (rootCommon, true);
+            tvContent.ShowNodeToolTips = true;
+            tvContent.AfterLabelEdit += AfterLabelEdit_tvContent;
+
+            ConstructTreeView(rootCommon, rootNode, true);
+        }
+
         private void Main_Load(object sender, EventArgs e)
         {
             List<string> paths = new();
@@ -38,13 +50,7 @@ namespace ArxmlEditor
                 arFile.AddFile(f.FullName);
             }
 
-            var rootNode = tvContent.Nodes.Add("Autosar");
-            var rootCommon = new ArCommon(arFile.root, null, null);
-            rootNode.Tag = (rootCommon, true);
-            tvContent.ShowNodeToolTips = true;
-            tvContent.AfterLabelEdit += AfterLabelEdit_tvContent;
-
-            ConstructTreeView(rootCommon, rootNode, true);
+            RefreshUi();
         }
 
         private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
@@ -142,7 +148,7 @@ namespace ArxmlEditor
                                 {
                                     if (count % 20 == 0)
                                     {
-                                        stripItem3 = dropItem2.DropDownItems.Add($"{count / 20 * 20}-{Math.Min(items.Count, count / 20 * 20 + 19)}");
+                                        stripItem3 = dropItem2.DropDownItems.Add($"{count / 20 * 20} - {Math.Min(items.Count, count / 20 * 20 + 19)}");
                                     }
                                     if (stripItem3 is ToolStripDropDownItem dropItem3)
                                     {
@@ -234,7 +240,48 @@ namespace ArxmlEditor
                                     foreach (var reference in c.ReferenceCanditate())
                                     {
                                         var itemEditSub = dropItemEdit.DropDownItems.Add(reference);
-                                        itemEditSub.MouseHover += ItemEdit_MouseHover;
+
+                                        if (itemEditSub is ToolStripDropDownItem dropItemEditSub)
+                                        {
+                                            var result = new List<IReferrable>();
+                                            foreach (var obj in c.Root().AllObjects)
+                                            {
+                                                if ((obj.InterfaceType.Name[1..] == reference) && (obj is IReferrable referrable))
+                                                {
+                                                    result.Add(referrable);
+                                                }
+                                            }
+
+                                            if (result.Count <= 20)
+                                            {
+                                                foreach (var referrable in result)
+                                                {
+                                                    var item = dropItemEditSub.DropDownItems.Add(referrable.ShortName);
+                                                    item.Tag = referrable;
+                                                    item.Click += ItemEdit_MouseHover;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var count = 0;
+                                                ToolStripItem? stripItem = null;
+
+                                                foreach (var referrable in result)
+                                                {
+                                                    if (count % 20 == 0)
+                                                    {
+                                                        stripItem = dropItemEditSub.DropDownItems.Add($"{count / 20 * 20} - {Math.Min(result.Count, count / 20 * 20 + 19)}");
+                                                    }
+                                                    if (stripItem is ToolStripDropDownItem dropItem2)
+                                                    {
+                                                        var item = dropItem2.DropDownItems.Add(referrable.ShortName);
+                                                        item.Tag = referrable;
+                                                        item.Click += ItemEdit_MouseHover;
+                                                    }
+                                                    count++;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -273,54 +320,6 @@ namespace ArxmlEditor
         }
 
         private void ItemEdit_MouseHover(object? sender, EventArgs e)
-        {
-            if ((arFile != null) && (sender is ToolStripDropDownItem dropItem))
-            {
-                if (arFile.root != null)
-                {
-                    var result = new List<IReferrable>();
-                    foreach (var obj in arFile.root.AllObjects)
-                    {
-                        if ((obj.InterfaceType.Name[1..] == dropItem.Text) && (obj is IReferrable referrable))
-                        {
-                            result.Add(referrable);
-                        }
-                    }
-
-                    if (result.Count <= 20)
-                    {
-                        foreach (var referrable in result)
-                        {
-                            var item = dropItem.DropDownItems.Add(referrable.ShortName);
-                            item.Tag = referrable;
-                            item.Click += ItemEdit_MouseHover2;
-                        }
-                    }
-                    else
-                    {
-                        var count = 0;
-                        ToolStripItem? stripItem = null;
-
-                        foreach (var referrable in result)
-                        {
-                            if (count % 20 == 0)
-                            {
-                                stripItem = dropItem.DropDownItems.Add($"{count / 20 * 20}-{Math.Min(result.Count, count / 20 * 20 + 19)}");
-                            }
-                            if (stripItem is ToolStripDropDownItem dropItem2)
-                            {
-                                var item = dropItem2.DropDownItems.Add(referrable.ShortName);
-                                item.Tag = referrable;
-                                item.Click += ItemEdit_MouseHover2;
-                            }
-                            count++;
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ItemEdit_MouseHover2(object? sender, EventArgs e)
         {
             if ((sender is ToolStripDropDownItem dropItem) && (tvContent.SelectedNode.Tag is (ArCommon c, bool _)))
             {
@@ -519,7 +518,7 @@ namespace ArxmlEditor
 
         private void Click_miFileLoad(object sender, EventArgs e)
         {
-            bool load = false;
+            var load = false;
 
             if (!arFile.IsEmpty())
             {
@@ -535,8 +534,80 @@ namespace ArxmlEditor
 
             if (load)
             {
-                OpenFileDialog fileDialog = new ();
-                fileDialog.ShowDialog();
+                OpenFileDialog fileDialog = new();
+                fileDialog.Title = "Please select arxml file want to open.";
+                fileDialog.Filter = "AUTOSAR(*.arxml)|*.arxml";
+                fileDialog.Multiselect = true;
+                var result = fileDialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    arFile.AddFile(fileDialog.FileNames);
+                    RefreshUi();
+                }
+            }
+        }
+
+        private void Click_miFileClear(object sender, EventArgs e)
+        {
+            arFile.Clear();
+            tvContent.Nodes.Clear();
+        }
+
+        private void Click_miFileSave(object sender, EventArgs e)
+        {
+            arFile.Save();
+        }
+
+        private void Click_miFileReload(object sender, EventArgs e)
+        {
+            var reload = false;
+
+            if (!arFile.IsEmpty())
+            {
+                if (MessageBox.Show("Please confirm all changes have been saved", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    reload = true;
+                }
+            }
+            else
+            {
+                reload = true;
+            }
+
+            if (reload)
+            {
+                arFile.Reload();
+                RefreshUi();
+            }
+        }
+
+        private void miFileNew_Click(object sender, EventArgs e)
+        {
+            var create = false;
+
+            if (!arFile.IsEmpty())
+            {
+                if (MessageBox.Show("Please confirm all changes have been saved", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    create = true;
+                }
+            }
+            else
+            {
+                create = true;
+            }
+
+            if (create)
+            {
+                SaveFileDialog fileDialog = new();
+                fileDialog.Title = "Please input new filename";
+                fileDialog.Filter = "AUTOSAR(*.arxml)|*.arxml";
+                var result = fileDialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    arFile.NewFile(fileDialog.FileName);
+                    RefreshUi();
+                }
             }
         }
     }
