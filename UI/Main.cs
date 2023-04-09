@@ -45,12 +45,12 @@ namespace ArxmlEditor
 
         private void Main_Load(object sender, EventArgs e)
         {
-            foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
-            {
-                arFile.AddFile(f.FullName);
-            }
+            //foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
+            //{
+            //    arFile.AddFile(f.FullName);
+            //}
 
-            RefreshUi();
+            //RefreshUi();
         }
 
         private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
