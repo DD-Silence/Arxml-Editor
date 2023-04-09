@@ -237,24 +237,15 @@ namespace ArxmlEditor
                                 var itemEdit = cmMember.Items.Add("Edit");
                                 if (itemEdit is ToolStripDropDownItem dropItemEdit)
                                 {
-                                    foreach (var reference in c.ReferenceCanditate())
+                                    foreach (var reference in c.ReferenceExisting())
                                     {
-                                        var itemEditSub = dropItemEdit.DropDownItems.Add(reference);
+                                        var itemEditSub = dropItemEdit.DropDownItems.Add(reference.Key.Name[1..]);
 
                                         if (itemEditSub is ToolStripDropDownItem dropItemEditSub)
                                         {
-                                            var result = new List<IReferrable>();
-                                            foreach (var obj in c.Root().AllObjects)
+                                            if (reference.Value.Count <= 20)
                                             {
-                                                if ((obj.InterfaceType.Name[1..] == reference) && (obj is IReferrable referrable))
-                                                {
-                                                    result.Add(referrable);
-                                                }
-                                            }
-
-                                            if (result.Count <= 20)
-                                            {
-                                                foreach (var referrable in result)
+                                                foreach (var referrable in reference.Value)
                                                 {
                                                     var item = dropItemEditSub.DropDownItems.Add(referrable.ShortName);
                                                     item.Tag = referrable;
@@ -266,11 +257,11 @@ namespace ArxmlEditor
                                                 var count = 0;
                                                 ToolStripItem? stripItem = null;
 
-                                                foreach (var referrable in result)
+                                                foreach (var referrable in reference.Value)
                                                 {
                                                     if (count % 20 == 0)
                                                     {
-                                                        stripItem = dropItemEditSub.DropDownItems.Add($"{count / 20 * 20} - {Math.Min(result.Count, count / 20 * 20 + 19)}");
+                                                        stripItem = dropItemEditSub.DropDownItems.Add($"{count / 20 * 20} - {Math.Min(reference.Value.Count, count / 20 * 20 + 19)}");
                                                     }
                                                     if (stripItem is ToolStripDropDownItem dropItem2)
                                                     {

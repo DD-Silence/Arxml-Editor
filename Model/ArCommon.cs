@@ -305,6 +305,11 @@ namespace ArxmlEditor.Model
             return result;
         }
 
+        public IEnumerable<IMetaObjectInstance> AllObjects()
+        {
+            return Root().AllObjects;
+        }
+
         public IARRef? TryGetReference()
         {
             if (Type == ArCommonType.Reference)
@@ -1109,7 +1114,7 @@ namespace ArxmlEditor.Model
             return false;
         }
 
-        public string[] EnumCanditate()
+        public List<string> EnumCanditate()
         {
             List<string> result = new();
 
@@ -1119,14 +1124,13 @@ namespace ArxmlEditor.Model
                 {
                     result.Add(name[1..]);
                 }
-                return result.ToArray();
             }
-            return Array.Empty<string>();
+            return result;
         }
 
-        public string[] ReferenceCanditate()
+        public List<Type> ReferenceCanditate()
         {
-            List<string> result = new();
+            List<Type> result = new();
 
             if (((Type == ArCommonType.Reference) || (Type == ArCommonType.References)) && (Role != null))
             {
@@ -1154,14 +1158,31 @@ namespace ArxmlEditor.Model
                         {
                             if ((type.GetInterfaces().Contains(typeFound)) && (type.Namespace == "GenTool_CsDataServerDomAsr4.InternalParser"))
                             {
-                                result.Add(type.Name[1..]);
+                                result.Add(type);
                             }
                         }
                     }
                 }
-                return result.ToArray();
             }
-            return Array.Empty<string>();
+            return result;
+        }
+
+        public Dictionary<Type, List<IReferrable>> ReferenceExisting()
+        {
+            Dictionary<Type, List<IReferrable>> result = new();
+            foreach (var reference in ReferenceCanditate())
+            {
+                var resultPartial = new List<IReferrable>();
+                foreach (var obj in AllObjects())
+                {
+                    if ((obj.InterfaceType.Name[1..] == reference.Name[1..]) && (obj is IReferrable referrable))
+                    {
+                        resultPartial.Add(referrable);
+                    }
+                }
+                result[reference] = resultPartial;
+            }
+            return result;
         }
 
         public void SetEnum(string name)

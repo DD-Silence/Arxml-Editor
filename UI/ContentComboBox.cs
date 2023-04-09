@@ -30,11 +30,11 @@ namespace ArxmlEditor.UI
             SelectedIndexChanged += ContentComboBox_SelectedIndexChanged;
             if (common.Parent.Type == ArCommonType.Meta)
             {
-                Items.AddRange(common.EnumCanditate());
+                Items.AddRange(common.EnumCanditate().ToArray());
             }
             else if (common.Parent.Type == ArCommonType.Reference)
             {
-                Items.AddRange(common.Parent.ReferenceCanditate());
+                Items.AddRange(common.Parent.ReferenceCanditate().ToArray());
                 Enabled = false;
             }
             Text = common.ToString();
