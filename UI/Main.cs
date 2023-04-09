@@ -283,7 +283,7 @@ namespace ArxmlEditor
 
                                 if (referencedFrom.Count > 0)
                                 {
-                                    var itemReferencedFrom = cmMember.Items.Add("Referenced From");
+                                    var itemReferencedFrom = cmMember.Items.Add("Ref From");
                                     if (itemReferencedFrom is ToolStripDropDownItem dropItemReferencedFrom)
                                     {
                                         foreach (var reference in referencedFrom)

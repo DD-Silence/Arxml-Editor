@@ -56,6 +56,23 @@ namespace ArxmlEditor.Model
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
         public event ChangedEventHandler? Changed;
+        public static readonly Dictionary<string, Dictionary<string, string[]>> arFilter = new()
+        //{
+        //    {
+        //        "ArPackage", new()
+        //        {
+        //            {"Include", new string[] { "ArPackage", "Element" } }
+        //        }
+        //    },
+        //    {
+        //        "Element", new()
+        //        {
+        //            {"Include", new string[] { "EcucModuleDef" } }
+        //        }
+        //    }
+        //}
+        ;
+
 
         public ArCommon(object? obj, IMetaRI? role, ArCommon? parent)
         {
@@ -403,8 +420,36 @@ namespace ArxmlEditor.Model
 
             if ((Type == ArCommonType.Metas) && (Metas != null))
             {
+                Dictionary<string, string[]>? filter = null;
+                if (Role != null)
+                {
+                    if (arFilter.ContainsKey(Role.Name))
+                    {
+                        filter = arFilter[Role.Name];
+                    }
+                }
                 foreach (var m in Metas)
                 {
+                    if ((filter != null) && (Role != null))
+                    {
+                        if (Role.MultipleInterfaceTypes)
+                        {
+                            if (filter.ContainsKey("Include"))
+                            {
+                                if (!filter["Include"].Contains(m.InterfaceType.Name[1..]))
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (filter.ContainsKey("Exclude"))
+                            {
+                                if (filter["Exclude"].Contains(Role.Name))
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
                     result.Add(new ArCommon(m, Role, this));
                 }
                 return result;
@@ -583,6 +628,14 @@ namespace ArxmlEditor.Model
         public List<ArCommon> GetExistingMember()
         {
             List<ArCommon> result = new();
+            Dictionary<string, string[]>? filter = null;
+            if (Role != null)
+            {
+                if (arFilter.ContainsKey(Role.Name))
+                {
+                    filter = arFilter[Role.Name];
+                }
+            }
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -591,6 +644,24 @@ namespace ArxmlEditor.Model
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
                         continue;
+                    }
+
+                    if (filter != null)
+                    {
+                        if (filter.ContainsKey("Include"))
+                        {
+                            if (!filter["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filter.ContainsKey("Exclude"))
+                        {
+                            if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
                     }
 
                     if (o.Single())
@@ -646,6 +717,14 @@ namespace ArxmlEditor.Model
         public List<IMetaRI> GetCandidateMember()
         {
             List<IMetaRI> result = new();
+            Dictionary<string, string[]>? filter = null;
+            if (Role != null)
+            {
+                if (arFilter.ContainsKey(Role.Name))
+                {
+                    filter = arFilter[Role.Name];
+                }
+            }
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -654,6 +733,24 @@ namespace ArxmlEditor.Model
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
                         continue;
+                    }
+
+                    if (filter != null)
+                    {
+                        if (filter.ContainsKey("Include"))
+                        {
+                            if (!filter["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filter.ContainsKey("Exclude"))
+                        {
+                            if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
                     }
 
                     if (o.Single())
@@ -696,6 +793,15 @@ namespace ArxmlEditor.Model
                 meta = Reference;
             }
 
+            Dictionary<string, string[]>? filter = null;
+            if (Role != null)
+            {
+                if (arFilter.ContainsKey(Role.Name))
+                {
+                    filter = arFilter[Role.Name];
+                }
+            }
+
             if (meta != null)
             {
                 foreach (var o in meta.MetaAllRoles)
@@ -703,6 +809,24 @@ namespace ArxmlEditor.Model
                     if (o.RoleType == RoleTypeEnum.Reference)
                     {
                         continue;
+                    }
+
+                    if (filter != null)
+                    {
+                        if (filter.ContainsKey("Include"))
+                        {
+                            if (!filter["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filter.ContainsKey("Exclude"))
+                        {
+                            if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
                     }
 
                     if (o.Single())
@@ -993,13 +1117,42 @@ namespace ArxmlEditor.Model
             return null;
         }
 
-        public Type[] RoleTypesFor(string roleName)
+        public List<Type> RoleTypesFor(string roleName)
         {
+            List<Type> result = new();
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
-                return Meta.RoleTypesFor(roleName);
+                Dictionary<string, string[]>? filter = null;
+                if (Role != null)
+                {
+                    if (arFilter.ContainsKey(roleName))
+                    {
+                        filter = arFilter[roleName];
+                    }
+                }
+                foreach (var t in Meta.RoleTypesFor(roleName))
+                {
+                    if (filter != null)
+                    {
+                        if (filter.ContainsKey("Include"))
+                        {
+                            if (!filter["Include"].Contains(t.Name[1..]))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filter.ContainsKey("Exclude"))
+                        {
+                            if (filter["Include"].Contains(t.Name[1..]))
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    result.Add(t);
+                }
             }
-            return Array.Empty<Type>();
+            return result;
         }
 
         public override string ToString()
