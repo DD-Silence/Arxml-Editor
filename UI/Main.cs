@@ -17,6 +17,7 @@
 
 using ArxmlEditor.Model;
 using ArxmlEditor.UI;
+using GenTool_CsDataServerAsrBase;
 using GenTool_CsDataServerDomAsr4.Iface;
 using System.Text.RegularExpressions;
 
@@ -24,7 +25,7 @@ namespace ArxmlEditor
 {
     public partial class Main : Form
     {
-        private ArFile arFile = new();
+        private readonly ArFile arFile = new();
         public Main()
         {
             InitializeComponent();
@@ -44,7 +45,6 @@ namespace ArxmlEditor
 
         private void Main_Load(object sender, EventArgs e)
         {
-            List<string> paths = new();
             foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
             {
                 arFile.AddFile(f.FullName);
@@ -534,10 +534,12 @@ namespace ArxmlEditor
 
             if (load)
             {
-                OpenFileDialog fileDialog = new();
-                fileDialog.Title = "Please select arxml file want to open.";
-                fileDialog.Filter = "AUTOSAR(*.arxml)|*.arxml";
-                fileDialog.Multiselect = true;
+                OpenFileDialog fileDialog = new()
+                {
+                    Title = "Please select arxml file want to open.",
+                    Filter = "AUTOSAR(*.arxml)|*.arxml",
+                    Multiselect = true
+                };
                 var result = fileDialog.ShowDialog();
                 if (result == DialogResult.OK)
                 {
@@ -581,7 +583,7 @@ namespace ArxmlEditor
             }
         }
 
-        private void miFileNew_Click(object sender, EventArgs e)
+        private void Click_miFileNew(object sender, EventArgs e)
         {
             var create = false;
 
@@ -599,13 +601,22 @@ namespace ArxmlEditor
 
             if (create)
             {
-                SaveFileDialog fileDialog = new();
-                fileDialog.Title = "Please input new filename";
-                fileDialog.Filter = "AUTOSAR(*.arxml)|*.arxml";
-                var result = fileDialog.ShowDialog();
-                if (result == DialogResult.OK)
+                var filter = "";
+                foreach (var v in Enum.GetNames(typeof(AsrVersion)))
                 {
-                    arFile.NewFile(fileDialog.FileName);
+                    filter += $"AUTOSAR-{v}(*.arxml)|*.arxml|";
+                }
+                SaveFileDialog fileDialog = new()
+                {
+                    Title = "Please input new filename",
+                    Filter = filter[..^1]
+                };
+
+                var result = fileDialog.ShowDialog();
+                if ((result == DialogResult.OK) && (fileDialog.FilterIndex > 0))
+                {
+                    var asrVersion = (AsrVersion)(fileDialog.FilterIndex - 1);
+                    arFile.NewFile(fileDialog.FileName, asrVersion);
                     RefreshUi();
                 }
             }

@@ -224,7 +224,7 @@
             miFileNew.ShortcutKeys = Keys.Control | Keys.N;
             miFileNew.Size = new Size(224, 26);
             miFileNew.Text = "New";
-            miFileNew.Click += miFileNew_Click;
+            miFileNew.Click += Click_miFileNew;
             // 
             // Main
             // 

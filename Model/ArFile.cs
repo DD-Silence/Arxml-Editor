@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using GenTool_CsDataServerAsrBase;
 using GenTool_CsDataServerDomAsr4;
 using GenTool_CsDataServerDomAsr4.Iface;
 
@@ -86,12 +87,13 @@ namespace ArxmlEditor.Model
             root?.Domain.Reload();
         }
 
-        public void NewFile(string filePath)
+        public void NewFile(string filePath, AsrVersion version)
         {
             Clear();
             paths.Add(filePath);
-            IDomain domain = DomainFactory.Instance.Create();
-            domain.New(filePath);
+            GenTool_CsDataServerDomAsr4.Iface.IDomain domain = DomainFactory.Instance.Create();
+            var file = domain.New(filePath);
+            file.AsrVersion = version;
             root = domain.Model;
             domain.Save();
         }
