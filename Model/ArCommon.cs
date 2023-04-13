@@ -363,9 +363,9 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not References");
         }
 
-        public List<ArCommon> GetCommonReferences()
+        public ArCommonList GetCommonReferences()
         {
-            var result = new List<ArCommon>();
+            ArCommonList result = new();
 
             if ((Type == ArCommonType.References) && (References != null))
             {
@@ -414,9 +414,9 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not MetaObjects");
         }
 
-        public List<ArCommon> GetCommonMetas()
+        public ArCommonList GetCommonMetas()
         {
-            var result = new List<ArCommon>();
+            ArCommonList result = new();
 
             if ((Type == ArCommonType.Metas) && (Metas != null))
             {
@@ -510,9 +510,9 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Enums");
         }
 
-        public List<ArCommon> GetCommonEnums()
+        public ArCommonList GetCommonEnums()
         {
-            var result = new List<ArCommon>();
+            ArCommonList result = new();
 
             if ((Type == ArCommonType.Enums) && (Enums != null))
             {
@@ -610,9 +610,9 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Others");
         }
 
-        public List<ArCommon> GetCommonObjs()
+        public ArCommonList GetCommonObjs()
         {
-            var result = new List<ArCommon>();
+            ArCommonList result = new();
 
             if ((Type == ArCommonType.Others) && (Objs != null))
             {
@@ -625,9 +625,36 @@ namespace ArxmlEditor.Model
             throw new Exception("Type is not Others");
         }
 
-        public List<ArCommon> GetExistingMember()
+        public ArCommonList GetCommons()
         {
-            List<ArCommon> result = new();
+            ArCommonList result;
+
+            if ((Type == ArCommonType.Metas) && (Metas != null))
+            {
+                result = GetCommonMetas();
+            }
+            else if ((Type == ArCommonType.Enums) && (Enums != null))
+            {
+                result = GetCommonEnums();
+            }
+            else if((Type == ArCommonType.Others) && (Objs != null))
+            {
+                result = GetCommonObjs();
+            }
+            else if ((Type == ArCommonType.References) && (References != null))
+            {
+                result = GetCommonReferences();
+            }
+            else
+            {
+                result = new();
+            }
+            return result;
+        }
+
+        public ArCommonList GetExistingMember()
+        {
+            ArCommonList result = new();
             Dictionary<string, string[]>? filter = null;
             if (Role != null)
             {
@@ -779,9 +806,9 @@ namespace ArxmlEditor.Model
             return result;
         }
 
-        public List<ArCommon> GetAllMember()
+        public ArCommonList GetAllMember()
         {
-            List<ArCommon> result = new();
+            ArCommonList result = new();
             IMetaObjectInstance? meta = null;
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
@@ -1683,6 +1710,110 @@ namespace ArxmlEditor.Model
                 }
             }
             return result;
+        }
+
+        public ArCommonList this[string name]
+        {
+            get
+            {
+                ArCommonList result = new();
+
+                if (Type == ArCommonType.Meta)
+                {
+                    Dictionary<string, string[]>? filter = null;
+
+                    if (Role != null)
+                    {
+                        if (arFilter.ContainsKey(Role.Name))
+                        {
+                            filter = arFilter[Role.Name];
+                        }
+                    }
+
+                    if (Meta != null)
+                    {
+                        foreach (var o in Meta.MetaAllRoles)
+                        {
+                            if (o.RoleType == RoleTypeEnum.Reference)
+                            {
+                                continue;
+                            }
+
+                            if (o.Name != name)
+                            {
+                                continue;
+                            }
+
+                            if (filter != null)
+                            {
+                                if (filter.ContainsKey("Include"))
+                                {
+                                    if (!filter["Include"].Contains(o.Name))
+                                    {
+                                        continue;
+                                    }
+                                }
+                                else if (filter.ContainsKey("Exclude"))
+                                {
+                                    if (filter["Exclude"].Contains(o.Name))
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+
+                            if (o.Single())
+                            {
+                                if (o.Option())
+                                {
+                                    if (Meta.IsSpecified(o.Name))
+                                    {
+                                        result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
+                                    }
+                                }
+                                else
+                                {
+                                    result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
+                                }
+                            }
+                            else if (o.Multiply())
+                            {
+                                var childObjs = Meta.GetCollectionValueRaw(o.Name);
+
+                                if (childObjs is IMetaCollectionInstance collection)
+                                {
+                                    result.AddRange(new ArCommon(collection, o, this).GetCommons());
+                                }
+                            }
+                        }
+                    }
+                }
+                else if((Type == ArCommonType.Metas) || (Type == ArCommonType.References))
+                {
+                    foreach (var c in GetCommons())
+                    {
+                        result.AddRange(c[name]);
+                    }
+                }
+                return result;
+            }
+        }
+    }
+
+    public class ArCommonList : List<ArCommon>
+    {
+        public ArCommonList this[string name]
+        {
+            get
+            {
+                ArCommonList result = new();
+
+                foreach (var c in this)
+                {
+                    result.AddRange(c[name]);
+                }
+                return result;
+            }
         }
     }
 }
