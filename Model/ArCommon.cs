@@ -1732,57 +1732,67 @@ namespace ArxmlEditor.Model
 
                     if (Meta != null)
                     {
-                        foreach (var o in Meta.MetaAllRoles)
+                        if ((Role != null) && (Role.MultipleInterfaceTypes))
                         {
-                            if (o.RoleType == RoleTypeEnum.Reference)
+                            if (Meta.InterfaceType.Name[1..] == name)
                             {
-                                continue;
+                                result.Add(this);
                             }
-
-                            if (o.Name != name)
+                        }
+                        else
+                        {
+                            foreach (var o in Meta.MetaAllRoles)
                             {
-                                continue;
-                            }
-
-                            if (filter != null)
-                            {
-                                if (filter.ContainsKey("Include"))
+                                if (o.RoleType == RoleTypeEnum.Reference)
                                 {
-                                    if (!filter["Include"].Contains(o.Name))
+                                    continue;
+                                }
+
+                                if (o.Name != name)
+                                {
+                                    continue;
+                                }
+
+                                if (filter != null)
+                                {
+                                    if (filter.ContainsKey("Include"))
                                     {
-                                        continue;
+                                        if (!filter["Include"].Contains(o.Name))
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    else if (filter.ContainsKey("Exclude"))
+                                    {
+                                        if (filter["Exclude"].Contains(o.Name))
+                                        {
+                                            continue;
+                                        }
                                     }
                                 }
-                                else if (filter.ContainsKey("Exclude"))
-                                {
-                                    if (filter["Exclude"].Contains(o.Name))
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
 
-                            if (o.Single())
-                            {
-                                if (o.Option())
+                                if (o.Single())
                                 {
-                                    if (Meta.IsSpecified(o.Name))
+                                    if (o.Option())
+                                    {
+                                        if (Meta.IsSpecified(o.Name))
+                                        {
+                                            result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
+                                        }
+                                    }
+                                    else
                                     {
                                         result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
                                     }
                                 }
-                                else
+                                else if (o.Multiply())
                                 {
-                                    result.Add(new ArCommon(Meta.GetValue(o.Name), o, this));
-                                }
-                            }
-                            else if (o.Multiply())
-                            {
-                                var childObjs = Meta.GetCollectionValueRaw(o.Name);
+                                    var childObjs = Meta.GetCollectionValueRaw(o.Name);
 
-                                if (childObjs is IMetaCollectionInstance collection)
-                                {
-                                    result.AddRange(new ArCommon(collection, o, this).GetCommons());
+                                    if (childObjs is IMetaCollectionInstance collection)
+                                    {
+                                        result.AddRange(new ArCommon(collection, o, this).GetCommons());
+                                    }
                                 }
                             }
                         }
@@ -1793,6 +1803,24 @@ namespace ArxmlEditor.Model
                     foreach (var c in GetCommons())
                     {
                         result.AddRange(c[name]);
+                    }
+                }
+                return result;
+            }
+        }
+
+        public delegate bool FilterFunc(ArCommon common);
+        public ArCommonList this[string name, FilterFunc func]
+        {
+            get
+            {
+                ArCommonList result = new();
+
+                foreach (var c in this[name])
+                {
+                    if (func(c))
+                    {
+                        result.Add(c);
                     }
                 }
                 return result;
@@ -1814,6 +1842,25 @@ namespace ArxmlEditor.Model
                 }
                 return result;
             }
+        }
+
+        public delegate bool FilterFunc(ArCommon common);
+        public ArCommonList this[string name, FilterFunc func]
+        {
+            get
+            {
+                ArCommonList result = new();
+
+                foreach (var c in this[name])
+                {
+                    if (func(c))
+                    {
+                        result.Add(c);
+                    }
+                }
+                return result;
+            }
+
         }
     }
 }
