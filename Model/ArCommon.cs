@@ -1077,7 +1077,7 @@ namespace ArxmlEditor.Model
             return false;
         }
 
-        public ArCommon? Add(IMetaRI role, Type? type = null)
+        public ArCommon? Add(IMetaRI role)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -1099,15 +1099,12 @@ namespace ArxmlEditor.Model
                 }
                 else if (role.Multiply())
                 {
-                    if (role.MultipleInterfaceTypes == true)
+                    if (role.IsMeta())
                     {
-                        var newObj = Meta.AddNew(role.Name, type);
+                        var newObj = Meta.AddNew(role.Name, role.InterfaceType);
                         if (newObj is IReferrable referrable)
                         {
-                            if (type != null)
-                            {
-                                referrable.ShortName = type.Name[1..];
-                            }
+                            referrable.ShortName = role.Name;
                         }
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
@@ -1116,29 +1113,37 @@ namespace ArxmlEditor.Model
                     }
                     else
                     {
-                        if (role.IsMeta())
+                        var newObj = AddObject(role);
+                        if (newObj != null)
                         {
-                            var newObj = Meta.AddNew(role.Name, role.InterfaceType);
-                            if (newObj is IReferrable referrable)
-                            {
-                                referrable.ShortName = role.Name;
-                            }
                             var newCommon = new ArCommon(newObj, role, this);
                             newCommon.Check();
-                            Changed?.Invoke();
                             return newCommon;
                         }
-                        else
+                    }
+                }
+            }
+            return null;
+        }
+
+        public ArCommon? AddMultipleInterface(IMetaRI role, Type type)
+        {
+            if (role.Multiply())
+            {
+                if (role.MultipleInterfaceTypes == true)
+                {
+                    var newObj = Meta.AddNew(role.Name, type);
+                    if (newObj is IReferrable referrable)
+                    {
+                        if (type != null)
                         {
-                            var newObj = AddObject(role);
-                            if (newObj != null)
-                            {
-                                var newCommon = new ArCommon(newObj, role, this);
-                                newCommon.Check();
-                                return newCommon;
-                            }
+                            referrable.ShortName = type.Name[1..];
                         }
                     }
+                    var newCommon = new ArCommon(newObj, role, this);
+                    newCommon.Check();
+                    Changed?.Invoke();
+                    return newCommon;
                 }
             }
             return null;
@@ -1860,7 +1865,6 @@ namespace ArxmlEditor.Model
                 }
                 return result;
             }
-
         }
     }
 }
