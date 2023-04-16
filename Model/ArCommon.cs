@@ -18,6 +18,8 @@
 using GenTool_CsDataServerDomAsr4.Iface;
 using Meta.Helper;
 using Meta.Iface;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Data;
 using System.Reflection;
 
@@ -38,8 +40,6 @@ namespace ArxmlEditor.Model
         Others,
     };
 
-    public delegate void ChangedEventHandler();
-
     public class ArCommon
     {
         public ArCommonType Type { get; }
@@ -55,7 +55,6 @@ namespace ArxmlEditor.Model
         private IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
-        public event ChangedEventHandler? Changed;
         public static readonly Dictionary<string, Dictionary<string, string[]>> arFilter = new()
         //{
         //    {
@@ -921,7 +920,7 @@ namespace ArxmlEditor.Model
             }
         }
 
-        private object? AddObject(IMetaRI role, object? obj=null, bool notify = true)
+        private object? AddObject(IMetaRI role, object? obj=null)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -945,17 +944,13 @@ namespace ArxmlEditor.Model
                 if ((method != null) && (objAdd != null))
                 {
                     method.Invoke(Meta, new object[] { objAdd });
-                    if (notify)
-                    {
-                        Changed?.Invoke();
-                    }
                     return objAdd;
                 }
             }
             return null;
         }
 
-        public void RemoveAllObject(IMetaRI role, bool notify=true)
+        public void RemoveAllObject(IMetaRI role)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -972,17 +967,13 @@ namespace ArxmlEditor.Model
                     var count = c.Count;
                     for (Int32 i = 0; i < count; i++)
                     {
-                        RemoveObject(role, 0, false);
+                        RemoveObject(role, 0);
                     }
-                }
-                if (notify)
-                {
-                    Changed?.Invoke();
                 }
             }
         }
 
-        public void RemoveObject(IMetaRI role, Int32 index, bool notify=true)
+        public void RemoveObject(IMetaRI role, Int32 index)
         {
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -993,10 +984,6 @@ namespace ArxmlEditor.Model
                     {
                         var method = Meta.GetType().GetMethod($"Remove{role.Name}");
                         method?.Invoke(Meta, new object[] { index });
-                        if (notify)
-                        {
-                            Changed?.Invoke();
-                        }
                     }
                 }
             }
@@ -1015,7 +1002,6 @@ namespace ArxmlEditor.Model
                         if (meta.Equals(c.Obj))
                         {
                             RemoveObject(role, index);
-                            Changed?.Invoke();
                             return;
                         }
                         index++;
@@ -1030,7 +1016,6 @@ namespace ArxmlEditor.Model
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
                 Meta.SetSpecified(role.Name, isSpecifed);
-                Changed?.Invoke();
             }
         }
 
@@ -1093,7 +1078,6 @@ namespace ArxmlEditor.Model
                         }
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
-                        Changed?.Invoke();
                         return newCommon;
                     }
                 }
@@ -1108,7 +1092,6 @@ namespace ArxmlEditor.Model
                         }
                         var newCommon = new ArCommon(newObj, role, this);
                         newCommon.Check();
-                        Changed?.Invoke();
                         return newCommon;
                     }
                     else
@@ -1128,23 +1111,27 @@ namespace ArxmlEditor.Model
 
         public ArCommon? AddMultipleInterface(IMetaRI role, Type type)
         {
-            if (role.Multiply())
+            if (role.MultipleInterfaceTypes == true)
             {
-                if (role.MultipleInterfaceTypes == true)
+                object newObj;
+                if (role.Multiply())
                 {
-                    var newObj = Meta.AddNew(role.Name, type);
-                    if (newObj is IReferrable referrable)
-                    {
-                        if (type != null)
-                        {
-                            referrable.ShortName = type.Name[1..];
-                        }
-                    }
-                    var newCommon = new ArCommon(newObj, role, this);
-                    newCommon.Check();
-                    Changed?.Invoke();
-                    return newCommon;
+                    newObj = Meta.AddNew(role.Name, type);
                 }
+                else
+                {
+                    newObj = Meta.New(role.Name, type);
+                }
+                if (newObj is IReferrable referrable)
+                {
+                    if (type != null)
+                    {
+                        referrable.ShortName = type.Name[1..];
+                    }
+                }
+                var newCommon = new ArCommon(newObj, role, this);
+                newCommon.Check();
+                return newCommon;
             }
             return null;
         }
@@ -1244,9 +1231,9 @@ namespace ArxmlEditor.Model
                     return "";
 
                 case ArCommonType.Reference:
-                    if (Reference != null)
+                    if (Role != null)
                     {
-                        return $"{Reference.Value.Split("/").Last()}(R)";
+                        return $"{Role.Name}(R)";
                     }
                     return "";
 
@@ -1424,12 +1411,11 @@ namespace ArxmlEditor.Model
                         }
                         count++;
                     }
-                    Parent.RemoveAllObject(Role, false);
+                    Parent.RemoveAllObject(Role);
                     foreach (var e in results)
                     {
-                        Parent.AddObject(Role, e, false);
+                        Parent.AddObject(Role, e);
                     }
-                    Changed?.Invoke();
                 }
             }
         }
@@ -1441,7 +1427,6 @@ namespace ArxmlEditor.Model
                 if (Parent.Type == ArCommonType.Meta)
                 {
                     Parent.GetMeta().SetValue(Role.Name, newValue);
-                    Changed?.Invoke();
                 }
             }
         }
@@ -1453,12 +1438,10 @@ namespace ArxmlEditor.Model
                 if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
                 {
                     Parent.Meta.SetValue(Role.Name, newValue);
-                    Changed?.Invoke();
                 }
                 else if ((Parent.Type == ArCommonType.Reference) && (Parent.Reference != null))
                 {
                     Parent.Reference.SetValue(Role.Name, newValue);
-                    Changed?.Invoke();
                 }
             }
             else if ((Type == ArCommonType.Integer) && (Role != null) && (Integer != null))
@@ -1499,12 +1482,11 @@ namespace ArxmlEditor.Model
                         }
                         count++;
                     }
-                    Parent.RemoveAllObject(Role, false);
+                    Parent.RemoveAllObject(Role);
                     foreach (var e in results)
                     {
-                        Parent.AddObject(Role, e, false);
+                        Parent.AddObject(Role, e);
                     }
-                    Changed?.Invoke();
                 }
             }
         }
@@ -1715,6 +1697,94 @@ namespace ArxmlEditor.Model
                 }
             }
             return result;
+        }
+
+        public void AddPropertyHandler(PropertyChangedEventHandler handler)
+        {
+            try
+            {
+                if ((Type == ArCommonType.Meta) && (Meta != null))
+                {
+                    Root().NewEventRegistrator().For(Meta).Do(new(x => { x.PropertyChanged += handler; }));
+                }
+                else if ((Type == ArCommonType.Reference) && (Reference != null))
+                {
+                    Root().NewEventRegistrator().For(Reference).Do(new(x => { x.PropertyChanged += handler; }));
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void DelPropertyandler(PropertyChangedEventHandler handler)
+        {
+            try
+            {
+                if ((Type == ArCommonType.Meta) && (Meta != null))
+                {
+                    Root().NewEventRegistrator().For(Meta).Do(new(x => { x.PropertyChanged -= handler; }));
+                }
+                else if ((Type == ArCommonType.Reference) && (Reference != null))
+                {
+                    Root().NewEventRegistrator().For(Reference).Do(new(x => { x.PropertyChanged -= handler; }));
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void AddCollectionHandler(NotifyCollectionChangedEventHandler handler)
+        {
+            try
+            {
+                if ((Type == ArCommonType.Metas) && (Metas != null))
+                {
+                    if (Metas is IMetaCollectionInstance collection)
+                    {
+                        Root().NewEventRegistrator().For(collection).Do(new(x => { x.CollectionChanged += handler; }));
+                    }
+                }
+                else if ((Type == ArCommonType.References) && (References != null))
+                {
+                    if (References is IMetaCollectionInstance collection)
+                    {
+                        Root().NewEventRegistrator().For(collection).Do(new(x => { x.CollectionChanged += handler; }));
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void DelCollectionHandler(NotifyCollectionChangedEventHandler handler)
+        {
+            try
+            {
+                if ((Type == ArCommonType.Metas) && (Metas != null))
+                {
+                    if (Metas is IMetaCollectionInstance collection)
+                    {
+                        Root().NewEventRegistrator().For(collection).Do(new(x => { x.CollectionChanged -= handler; }));
+                    }
+                }
+                else if ((Type == ArCommonType.References) && (References != null))
+                {
+                    if (References is IMetaCollectionInstance collection)
+                    {
+                        Root().NewEventRegistrator().For(collection).Do(new(x => { x.CollectionChanged -= handler; }));
+                    }
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         public ArCommonList this[string name]

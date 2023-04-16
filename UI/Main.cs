@@ -19,6 +19,7 @@ using ArxmlEditor.Model;
 using ArxmlEditor.UI;
 using GenTool_CsDataServerAsrBase;
 using GenTool_CsDataServerDomAsr4.Iface;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace ArxmlEditor
@@ -62,13 +63,13 @@ namespace ArxmlEditor
                     if (m.Type == ArCommonType.References)
                     {
                         var references = m.GetCommonReferences();
-                        var nodeCurrent = node.Nodes.Add($"{m}");
+                        ContentTreeNode nodeCurrent = new(m, true);
+                        node.Nodes.Add(nodeCurrent);
 
-                        nodeCurrent.Tag = (m, true);
                         foreach (var r in references)
                         {
-                            var nodeCurrent2 = nodeCurrent.Nodes.Add($"{r}");
-                            nodeCurrent2.Tag = (r, false);
+                            ContentTreeNode nodeCurrent2 = new(r, false);
+                            nodeCurrent.Nodes.Add(nodeCurrent2);
                             if (first)
                             {
                                 ConstructTreeView(r, nodeCurrent2, false);
@@ -78,23 +79,15 @@ namespace ArxmlEditor
                     else if (m.Type == ArCommonType.Metas)
                     {
                         var mObjs = m.GetCommonMetas();
-                        var nodeCurrent = node.Nodes.Add($"{m}");
+                        ContentTreeNode nodeCurrent = new(m, true);
+                        node.Nodes.Add(nodeCurrent);
 
-                        nodeCurrent.Tag = (m, true);
                         foreach (var mChild in mObjs)
                         {
                             if (mChild.Role != null)
                             {
-                                TreeNode nodeCurrent2;
-                                if (m.Role.MultipleInterfaceTypes)
-                                {
-                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
-                                }
-                                else
-                                {
-                                    nodeCurrent2 = nodeCurrent.Nodes.Add($"{mChild}");
-                                }
-                                nodeCurrent2.Tag = (mChild, false);
+                                ContentTreeNode nodeCurrent2 = new(mChild, false);
+                                nodeCurrent.Nodes.Add(nodeCurrent2);
                                 if (first)
                                 {
                                     ConstructTreeView(mChild, nodeCurrent2, false);
@@ -104,8 +97,8 @@ namespace ArxmlEditor
                     }
                     else if ((m.Type == ArCommonType.Meta) || (m.Type == ArCommonType.Reference))
                     {
-                        var nodeCurrent = node.Nodes.Add($"{m}");
-                        nodeCurrent.Tag = (m, false);
+                        ContentTreeNode nodeCurrent = new(m, false);
+                        node.Nodes.Add(nodeCurrent);
                         if (first)
                         {
                             ConstructTreeView(m, nodeCurrent, false);
@@ -318,7 +311,7 @@ namespace ArxmlEditor
                 {
                     c.GetReference().DestType = referrable.IdType;
                     c.GetReference().Value = referrable.AsrPath;
-                    tvContent.SelectedNode.Text = $"{referrable.ShortName}(R)";
+                    ConstructContent(c);
                 }
             }
         }
@@ -338,14 +331,14 @@ namespace ArxmlEditor
                 {
                     if (dropItem.OwnerItem.Tag is (TreeNode nodeSelect3, ArCommon c3, Meta.Iface.IMetaRI role3))
                     {
-                        c3.Add(role3, type2);
+                        c3.AddMultipleInterface(role3, type2);
                         nodeSelect3.Nodes.Clear();
                         ConstructTreeView(c3, nodeSelect3, true);
                         nodeSelect3.Expand();
                     }
                     else if (dropItem.OwnerItem.OwnerItem.Tag is (TreeNode nodeSelect4, ArCommon c4, Meta.Iface.IMetaRI role4))
                     {
-                        c4.Add(role4, type2);
+                        c4.AddMultipleInterface(role4, type2);
                         nodeSelect4.Nodes.Clear();
                         ConstructTreeView(c4, nodeSelect4, true);
                         nodeSelect4.Expand();
@@ -360,13 +353,16 @@ namespace ArxmlEditor
             {
                 if (dropItem.Tag is (TreeNode nodeSelect, ArCommon c))
                 {
-                    var parentNode = nodeSelect.Parent;
-                    var parentCommon = c.Parent;
-
                     if (c.Type == ArCommonType.Meta)
                     {
                         var meta = c.GetMeta();
                         meta.DeleteAndRemoveFromOwner();
+                        nodeSelect.Remove();
+                    }
+                    else if (c.Type == ArCommonType.Reference)
+                    {
+                        var reference = c.GetReference();
+                        reference.DeleteAndRemoveFromOwner();
                         nodeSelect.Remove();
                     }
                     else if ((c.Type == ArCommonType.Metas) && (c.Role != null))
@@ -380,12 +376,16 @@ namespace ArxmlEditor
                             }
                         }
                     }
-
-                    while (parentCommon.Empty())
+                    else if ((c.Type == ArCommonType.References) && (c.Role != null))
                     {
-                        parentNode.Remove();
-                        parentCommon = parentCommon.Parent;
-                        parentNode = parentNode.Parent;
+                        if (nodeSelect.Parent.Tag is (ArCommon c2, bool))
+                        {
+                            if (c2.Type == ArCommonType.Reference)
+                            {
+                                c2.RemoveAllObject(c.Role);
+                                nodeSelect.Remove();
+                            }
+                        }
                     }
                 }
             }
@@ -419,8 +419,8 @@ namespace ArxmlEditor
         private void ConstructContent(ArCommon c)
         {
             tpContent.Tag = c;
-            c.Changed -= Common_Changed;
-            c.Changed += Common_Changed;
+            c.DelPropertyandler(Common_Changed);
+            c.AddPropertyHandler(Common_Changed);
             tpContent.Controls.Clear();
 
             foreach (var c2 in c.GetAllMember())
@@ -488,7 +488,7 @@ namespace ArxmlEditor
             }
         }
 
-        private void Common_Changed()
+        private void Common_Changed(object? sender, PropertyChangedEventArgs e)
         {
             if (tpContent.Tag is ArCommon common)
             {

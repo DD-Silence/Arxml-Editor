@@ -29,7 +29,7 @@ namespace ArxmlEditor.Model
 
         public static bool Multiply(this IMetaRI role)
         {
-            return ((uint)role.MaxOccurs > 0);
+            return ((uint)role.MaxOccurs > 1);
         }
 
         public static bool Option(this IMetaRI role)

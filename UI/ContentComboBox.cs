@@ -34,7 +34,12 @@ namespace ArxmlEditor.UI
             }
             else if (common.Parent.Type == ArCommonType.Reference)
             {
-                Items.AddRange(common.Parent.ReferenceCanditate().ToArray());
+                List<string> result = new();
+                foreach (var t in common.Parent.ReferenceCanditate())
+                {
+                    result.Add(t.Name[1..]);
+                }
+                Items.AddRange(result.ToArray());
                 Enabled = false;
             }
             Text = common.ToString();
