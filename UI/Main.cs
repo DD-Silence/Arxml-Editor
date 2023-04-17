@@ -612,5 +612,10 @@ namespace ArxmlEditor
                 }
             }
         }
+
+        private void Click_aboutToolStripMenuItem(object sender, EventArgs e)
+        {
+            MessageBox.Show($"Arxml Editor V1.0{Environment.NewLine}https://github.com/DD-Silence/Arxml-Editor{Environment.NewLine}ddsilence@sina.cn", "About");
+        }
     }
 }

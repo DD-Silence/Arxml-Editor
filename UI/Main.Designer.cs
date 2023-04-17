@@ -39,11 +39,12 @@
             tbOutput = new TextBox();
             mnMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
+            miFileNew = new ToolStripMenuItem();
             miFileSave = new ToolStripMenuItem();
             miFileLoad = new ToolStripMenuItem();
             miFileReload = new ToolStripMenuItem();
             miFileClear = new ToolStripMenuItem();
-            miFileNew = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)scHorizantal1).BeginInit();
             scHorizantal1.Panel1.SuspendLayout();
             scHorizantal1.Panel2.SuspendLayout();
@@ -173,7 +174,7 @@
             // mnMain
             // 
             mnMain.ImageScalingSize = new Size(20, 20);
-            mnMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            mnMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, aboutToolStripMenuItem });
             mnMain.Location = new Point(0, 0);
             mnMain.Name = "mnMain";
             mnMain.Size = new Size(1581, 28);
@@ -186,6 +187,14 @@
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(48, 24);
             fileToolStripMenuItem.Text = "File";
+            // 
+            // miFileNew
+            // 
+            miFileNew.Name = "miFileNew";
+            miFileNew.ShortcutKeys = Keys.Control | Keys.N;
+            miFileNew.Size = new Size(224, 26);
+            miFileNew.Text = "New";
+            miFileNew.Click += Click_miFileNew;
             // 
             // miFileSave
             // 
@@ -218,13 +227,12 @@
             miFileClear.Text = "Clear";
             miFileClear.Click += Click_miFileClear;
             // 
-            // miFileNew
+            // aboutToolStripMenuItem
             // 
-            miFileNew.Name = "miFileNew";
-            miFileNew.ShortcutKeys = Keys.Control | Keys.N;
-            miFileNew.Size = new Size(224, 26);
-            miFileNew.Text = "New";
-            miFileNew.Click += Click_miFileNew;
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(69, 24);
+            aboutToolStripMenuItem.Text = "About";
+            aboutToolStripMenuItem.Click += Click_aboutToolStripMenuItem;
             // 
             // Main
             // 
@@ -275,5 +283,6 @@
         private ToolStripMenuItem miFileReload;
         private ToolStripMenuItem miFileClear;
         private ToolStripMenuItem miFileNew;
+        private ToolStripMenuItem aboutToolStripMenuItem;
     }
 }
