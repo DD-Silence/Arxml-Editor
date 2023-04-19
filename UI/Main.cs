@@ -166,22 +166,26 @@ namespace ArxmlEditor
         {
             if (e.Label != null)
             {
-                if (e.Node.Tag is (ArCommon c, bool _))
+                if (e.Node != null)
                 {
-                    if (c.GetMeta() is IReferrable referrable)
+                    if (e.Node.Tag is (ArCommon c, bool _))
                     {
-                        var regex = new Regex("^[a-zA-Z][a-zA-Z0-9_]*");
-                        if (regex.IsMatch(e.Label))
+                        if (c.GetMeta() is IReferrable referrable)
                         {
-                            referrable.ShortName = e.Label;
-                            ConstructContent(c);
-                        }
-                        else
-                        {
-                            e.CancelEdit = true;
+                            var regex = new Regex("^[a-zA-Z][a-zA-Z0-9_]*");
+                            if (regex.IsMatch(e.Label))
+                            {
+                                referrable.ShortName = e.Label;
+                                ConstructContent(c);
+                            }
+                            else
+                            {
+                                e.CancelEdit = true;
+                            }
                         }
                     }
                 }
+
             }
         }
 

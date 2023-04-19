@@ -43,15 +43,15 @@ namespace ArxmlEditor.Model
     public class ArCommon
     {
         public ArCommonType Type { get; }
-        private IARRef? Reference { get; }
+        private IARRef? Reference { get; set; }
         private IEnumerable<IARRef>? References { get; }
         private IMetaObjectInstance? Meta { get; }
         private IEnumerable<IMetaObjectInstance>? Metas { get; }
         private Enum? Enum { get; set; }
         private IMetaCollectionInstance? Enums { get; }
         private bool? Bool { get; set; }
-        private AsrInt? Integer { get; }
-        private object? Obj { get; }
+        private AsrInt? Integer { get; set; }
+        private object? Obj { get; set; }
         private IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
@@ -1357,6 +1357,25 @@ namespace ArxmlEditor.Model
             return result;
         }
 
+        public void SetReference(string value)
+        {
+            if ((Type == ArCommonType.Reference) && (Reference != null))
+            {
+                Reference.Value = value;
+            }
+        }
+
+        public void SetReferences(int index, string value)
+        {
+            if ((Type == ArCommonType.References) && (References != null))
+            {
+                if ((index >= 0) && (index < References.Count()))
+                {
+                    GetCommonReferences()[index].Value = value;
+                }
+            }
+        }
+
         public void SetEnum(string name)
         {
             if ((Type == ArCommonType.Enum) && (Role != null))
@@ -1380,42 +1399,41 @@ namespace ArxmlEditor.Model
             }
         }
 
+        public void SetEnum(int index)
+        {
+            if ((Type == ArCommonType.Enum) && (Role != null))
+            {
+                var candidates = Enum.GetNames(Role.InterfaceType);
+                if ((index >= 0) && (candidates.Length > index))
+                {
+                    SetEnum(candidates[index]);
+                }
+            }
+        }
+
         public void SetEnums(int index, string name)
         {
             if ((Type == ArCommonType.Enums) && (Role != null) && (Enums != null))
             {
                 if ((index >= 0) && (index < Enums.Count))
                 {
-                    List<Enum> results = new();
-                    int count = 0;
-                    foreach (var e in Enums)
+                    var method = Enums.GetType().GetMethod("set_Item");
+                    if ((Enum.Parse(Role.InterfaceType, $"e{name}", true) is Enum item) && (method != null))
                     {
-                        if (e is Enum ee)
-                        {
-                            if (count == index)
-                            {
-                                var newE = Enum.Parse(Role.InterfaceType, $"e{name}", true);
-                                if (newE is Enum newEE)
-                                {
-                                    results.Add(newEE);
-                                }
-                                else
-                                {
-                                    results.Add(ee);
-                                }
-                            }
-                            else
-                            {
-                                results.Add(ee);
-                            }
-                        }
-                        count++;
+                        method.Invoke(Enums, new object[] { index, item });
                     }
-                    Parent.RemoveAllObject(Role);
-                    foreach (var e in results)
-                    {
-                        Parent.AddObject(Role, e);
-                    }
+                }
+            }
+        }
+
+        public void SetEnums(int index, int index2)
+        {
+            if ((Type == ArCommonType.Enums) && (Role != null) && (Enums != null))
+            {
+                var candidates = Enum.GetNames(Role.InterfaceType);
+                if ((index2 >= 0) && (candidates.Length > index2))
+                {
+                    SetEnums(index, candidates[index2]);
                 }
             }
         }
@@ -1423,6 +1441,17 @@ namespace ArxmlEditor.Model
         public void SetBool(bool newValue)
         {
             if ((Type == ArCommonType.Bool) && (Role != null))
+            {
+                if (Parent.Type == ArCommonType.Meta)
+                {
+                    Parent.GetMeta().SetValue(Role.Name, newValue);
+                }
+            }
+        }
+
+        public void SetInteger(int newValue)
+        {
+            if ((Type == ArCommonType.Integer) && (Role != null))
             {
                 if (Parent.Type == ArCommonType.Meta)
                 {
@@ -1468,25 +1497,185 @@ namespace ArxmlEditor.Model
             {
                 if ((index >= 0) && (index < Objs.Count()))
                 {
-                    List<object> results = new();
-                    int count = 0;
-                    foreach (var o in Objs)
-                    {
-                        if (count == index)
+                    var method = Objs.GetType().GetMethod("set_Item");
+                    method?.Invoke(Enums, new object[] { index, newValue });
+                }
+            }
+        }
+
+        public object? Value
+        {
+            get
+            {
+                switch (Type)
+                {
+                    case ArCommonType.Reference:
+                        if (Reference != null)
                         {
-                            results.Add(newValue);
+                            return Reference.Value;
                         }
-                        else
+                        break;
+
+                    case ArCommonType.Enum:
+                        if (Enum != null)
                         {
-                            results.Add(o);
+                            return Enum;
                         }
-                        count++;
-                    }
-                    Parent.RemoveAllObject(Role);
-                    foreach (var e in results)
-                    {
-                        Parent.AddObject(Role, e);
-                    }
+                        break;
+
+                    case ArCommonType.Bool:
+                        if (Bool != null)
+                        {
+                            return Bool;
+                        }
+                        break;
+
+                    case ArCommonType.Integer:
+                        if (Integer != null)
+                        {
+                            return Integer;
+                        }
+                        break;
+
+                    case ArCommonType.Other:
+                        if (Obj != null)
+                        {
+                            return Obj;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                return null;
+            }
+            set
+            {
+                switch (Type)
+                {
+                    case ArCommonType.Reference:
+                        {
+                            if (value is string s)
+                            {
+                                if ((Reference == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetReference(s);
+                                        Reference = c.Reference;
+                                    }
+                                }
+                                else if (Reference != null)
+                                {
+                                    SetReference(s);
+                                }
+                            }
+                        }
+                        break;
+
+                    case ArCommonType.Enum:
+                        {
+                            if (value is string s)
+                            {
+                                if ((Enum == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetEnum(s);
+                                        Enum = c.Enum;
+                                    }
+                                }
+                                else if (Enum != null)
+                                {
+                                    SetEnum(s);
+                                }
+                            }
+                            else if (value is int i)
+                            {
+                                if ((Enum == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetEnum(i);
+                                        Enum = c.Enum;
+                                    }
+                                }
+                                else if (Enum != null)
+                                {
+                                    SetEnum(i);
+                                }
+                            }
+                        }
+                        break;
+
+                    case ArCommonType.Bool:
+                        {
+                            if (value is bool b)
+                            {
+                                if ((Bool == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetBool(b);
+                                        Bool = c.Bool;
+                                    }
+                                }
+                                else if (Bool != null)
+                                {
+                                    SetBool(b);
+                                }
+                            }
+                        }
+                        break;
+
+                    case ArCommonType.Integer:
+                        {
+                            if (value is int i)
+                            {
+                                if ((Integer == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetInteger(i);
+                                        Integer = c.Integer;
+                                    }
+                                }
+                                else if (Integer != null)
+                                {
+                                    SetInteger(i);
+                                }
+                            }
+                        }
+                        break;
+
+                    case ArCommonType.Other:
+                        {
+                            if (value is object o)
+                            {
+                                if ((Obj == null) && (Role != null))
+                                {
+                                    var c = Parent.Add(Role);
+                                    if (c != null)
+                                    {
+                                        c.SetOther(o);
+                                        Obj = c.Obj;
+                                    }
+                                }
+                                else if (Obj != null)
+                                {
+                                    SetOther(o);
+                                }
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
             }
         }

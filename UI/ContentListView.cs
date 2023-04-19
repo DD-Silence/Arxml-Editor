@@ -143,16 +143,19 @@ namespace ArxmlEditor.UI
                     cbCandidate.Hide();
                 }
 
-                ContextMenuStrip.Items.Clear();
-                var itemAdd = ContextMenuStrip.Items.Add("Add");
-                itemAdd.Click += ItemAdd_Click;
-                itemAdd.Tag = Tag;
-
-                if (lvItem != null)
+                if (ContextMenuStrip != null)
                 {
-                    var itemDel = ContextMenuStrip.Items.Add("Del");
-                    itemDel.Click += ItemDel_Click;
-                    itemDel.Tag = (Tag, lvItem.Index);
+                    ContextMenuStrip.Items.Clear();
+                    var itemAdd = ContextMenuStrip.Items.Add("Add");
+                    itemAdd.Click += ItemAdd_Click;
+                    itemAdd.Tag = Tag;
+
+                    if (lvItem != null)
+                    {
+                        var itemDel = ContextMenuStrip.Items.Add("Del");
+                        itemDel.Click += ItemDel_Click;
+                        itemDel.Tag = (Tag, lvItem.Index);
+                    }
                 }
             }
         }

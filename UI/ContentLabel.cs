@@ -42,28 +42,31 @@ namespace ArxmlEditor.UI
             {
                 if (e.Button == MouseButtons.Right)
                 {
-                    ContextMenuStrip.Items.Clear();
-                    if (((c.Type == ArCommonType.Enum) || (c.Type == ArCommonType.Bool) ||
-                        (c.Type == ArCommonType.Integer) || (c.Type == ArCommonType.Other)) &&
-                        (c.Role != null))
+                    if (ContextMenuStrip != null)
                     {
-                        if (c.Role.Option())
+                        ContextMenuStrip.Items.Clear();
+                        if (((c.Type == ArCommonType.Enum) || (c.Type == ArCommonType.Bool) ||
+                            (c.Type == ArCommonType.Integer) || (c.Type == ArCommonType.Other)) &&
+                            (c.Role != null))
                         {
-                            if (c.IsNull())
+                            if (c.Role.Option())
                             {
-                                var itemAdd = ContextMenuStrip.Items.Add("Add");
-                                itemAdd.Click += ItemAdd_Click;
-                                itemAdd.Tag = c;
-                            }
-                            else
-                            {
-                                var itemDel = ContextMenuStrip.Items.Add("Delete");
-                                itemDel.Click += ItemDel_Click;
-                                itemDel.Tag = c;
+                                if (c.IsNull())
+                                {
+                                    var itemAdd = ContextMenuStrip.Items.Add("Add");
+                                    itemAdd.Click += ItemAdd_Click;
+                                    itemAdd.Tag = c;
+                                }
+                                else
+                                {
+                                    var itemDel = ContextMenuStrip.Items.Add("Delete");
+                                    itemDel.Click += ItemDel_Click;
+                                    itemDel.Tag = c;
+                                }
                             }
                         }
+                        ContextMenuStrip.Show();
                     }
-                    ContextMenuStrip.Show();
                 }
                 tb.Text = c.GetDesc();
             }
