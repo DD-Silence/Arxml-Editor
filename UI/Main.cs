@@ -46,12 +46,26 @@ namespace ArxmlEditor
 
         private void Main_Load(object sender, EventArgs e)
         {
-            foreach (var f in new DirectoryInfo("data").GetFiles())
-            {
-                arFile.AddFile(f.FullName);
-            }
-
-            RefreshUi();
+            //ArCommon.ArFilter = new()
+            //{
+            //    {
+            //        "ArPackage", new()
+            //        {
+            //            {"Include", new string[] { "ArPackage", "Element" } }
+            //        }
+            //    },
+            //    {
+            //        "Element", new()
+            //        {
+            //            {"Include", new string[] { "EcucModuleDef" } }
+            //        }
+            //    }
+            //};
+            //foreach (var f in new DirectoryInfo("data").GetFiles())
+            //{
+            //    arFile.AddFile(f.FullName);
+            //}
+            //RefreshUi();
         }
 
         private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)

@@ -55,22 +55,7 @@ namespace ArxmlEditor.Model
         private IEnumerable<object>? Objs { get; }
         public IMetaRI? Role { get; }
         public ArCommon  Parent { get; }
-        public static readonly Dictionary<string, Dictionary<string, string[]>> arFilter = new()
-        //{
-        //    {
-        //        "ArPackage", new()
-        //        {
-        //            {"Include", new string[] { "ArPackage", "Element" } }
-        //        }
-        //    },
-        //    {
-        //        "Element", new()
-        //        {
-        //            {"Include", new string[] { "EcucModuleDef" } }
-        //        }
-        //    }
-        //}
-        ;
+        static public Dictionary<string, Dictionary<string, string[]>> ArFilter { get; set; } = new();
 
 
         public ArCommon(object? obj, IMetaRI? role, ArCommon? parent)
@@ -422,9 +407,9 @@ namespace ArxmlEditor.Model
                 Dictionary<string, string[]>? filter = null;
                 if (Role != null)
                 {
-                    if (arFilter.ContainsKey(Role.Name))
+                    if (ArFilter.ContainsKey(Role.Name))
                     {
-                        filter = arFilter[Role.Name];
+                        filter = ArFilter[Role.Name];
                     }
                 }
                 foreach (var m in Metas)
@@ -657,9 +642,19 @@ namespace ArxmlEditor.Model
             Dictionary<string, string[]>? filter = null;
             if (Role != null)
             {
-                if (arFilter.ContainsKey(Role.Name))
+                if ((Role.MultipleInterfaceTypes) && (Meta != null))
                 {
-                    filter = arFilter[Role.Name];
+                    if (ArFilter.ContainsKey(Meta.GetType().Name[1..]))
+                    {
+                        filter = ArFilter[Meta.GetType().Name[1..]];
+                    }
+                }
+                else
+                {
+                    if (ArFilter.ContainsKey(Role.Name))
+                    {
+                        filter = ArFilter[Role.Name];
+                    }
                 }
             }
 
@@ -746,9 +741,19 @@ namespace ArxmlEditor.Model
             Dictionary<string, string[]>? filter = null;
             if (Role != null)
             {
-                if (arFilter.ContainsKey(Role.Name))
+                if ((Role.MultipleInterfaceTypes) && (Meta != null))
                 {
-                    filter = arFilter[Role.Name];
+                    if (ArFilter.ContainsKey(Meta.GetType().Name[1..]))
+                    {
+                        filter = ArFilter[Meta.GetType().Name[1..]];
+                    }
+                }
+                else
+                {
+                    if (ArFilter.ContainsKey(Role.Name))
+                    {
+                        filter = ArFilter[Role.Name];
+                    }
                 }
             }
 
@@ -822,9 +827,19 @@ namespace ArxmlEditor.Model
             Dictionary<string, string[]>? filter = null;
             if (Role != null)
             {
-                if (arFilter.ContainsKey(Role.Name))
+                if ((Role.MultipleInterfaceTypes) && (Meta != null))
                 {
-                    filter = arFilter[Role.Name];
+                    if (ArFilter.ContainsKey(Meta.GetType().Name[1..]))
+                    {
+                        filter = ArFilter[Meta.GetType().Name[1..]];
+                    }
+                }
+                else
+                {
+                    if (ArFilter.ContainsKey(Role.Name))
+                    {
+                        filter = ArFilter[Role.Name];
+                    }
                 }
             }
 
@@ -1144,9 +1159,9 @@ namespace ArxmlEditor.Model
                 Dictionary<string, string[]>? filter = null;
                 if (Role != null)
                 {
-                    if (arFilter.ContainsKey(roleName))
+                    if (ArFilter.ContainsKey(roleName))
                     {
-                        filter = arFilter[roleName];
+                        filter = ArFilter[roleName];
                     }
                 }
                 foreach (var t in Meta.RoleTypesFor(roleName))
@@ -2131,9 +2146,9 @@ namespace ArxmlEditor.Model
 
                     if (Role != null)
                     {
-                        if (arFilter.ContainsKey(Role.Name))
+                        if (ArFilter.ContainsKey(Role.Name))
                         {
-                            filter = arFilter[Role.Name];
+                            filter = ArFilter[Role.Name];
                         }
                     }
 
