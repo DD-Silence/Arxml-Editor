@@ -46,12 +46,12 @@ namespace ArxmlEditor
 
         private void Main_Load(object sender, EventArgs e)
         {
-            //foreach (var f in new DirectoryInfo("data/bswmd").GetFiles())
-            //{
-            //    arFile.AddFile(f.FullName);
-            //}
+            foreach (var f in new DirectoryInfo("data").GetFiles())
+            {
+                arFile.AddFile(f.FullName);
+            }
 
-            //RefreshUi();
+            RefreshUi();
         }
 
         private void ConstructTreeView(ArCommon arObj, TreeNode node, bool first)
@@ -246,7 +246,7 @@ namespace ArxmlEditor
                                                 {
                                                     var item = dropItemEditSub.DropDownItems.Add(referrable.ShortName);
                                                     item.Tag = referrable;
-                                                    item.Click += ItemEdit_MouseHover;
+                                                    item.Click += ItemEdit_MouseClick;
                                                 }
                                             }
                                             else
@@ -264,7 +264,7 @@ namespace ArxmlEditor
                                                     {
                                                         var item = dropItem2.DropDownItems.Add(referrable.ShortName);
                                                         item.Tag = referrable;
-                                                        item.Click += ItemEdit_MouseHover;
+                                                        item.Click += ItemEdit_MouseClick;
                                                     }
                                                     count++;
                                                 }
@@ -307,14 +307,13 @@ namespace ArxmlEditor
             }
         }
 
-        private void ItemEdit_MouseHover(object? sender, EventArgs e)
+        private void ItemEdit_MouseClick(object? sender, EventArgs e)
         {
             if ((sender is ToolStripDropDownItem dropItem) && (tvContent.SelectedNode.Tag is (ArCommon c, bool _)))
             {
                 if ((c.Type == ArCommonType.Reference) && (dropItem.Tag is IReferrable referrable))
                 {
-                    c.GetReference().DestType = referrable.IdType;
-                    c.GetReference().Value = referrable.AsrPath;
+                    c.SetReference(referrable);
                     ConstructContent(c);
                 }
             }

@@ -1357,43 +1357,127 @@ namespace ArxmlEditor.Model
             return result;
         }
 
-        public void SetReference(string value)
+        public void SetReference(IReferrable? referrable)
         {
-            if ((Type == ArCommonType.Reference) && (Reference != null))
+            if ((Type == ArCommonType.Reference) && (Role != null))
             {
-                Reference.Value = value;
+                if (Reference == null)
+                {
+                    if (referrable != null)
+                    {
+                        var c = Parent.Add(Role);
+                        if (c != null)
+                        {
+                            Reference = c.Reference;
+                        }
+                    }
+                }
+
+                if (Reference != null)
+                {
+                    if (referrable == null)
+                    {
+                        Parent.SetSpecified(Role, false);
+                    }
+                    else if ((Reference.DestType != referrable.IdType) || (Reference.Value != referrable.AsrPath))
+                    {
+                        if ((from c in ReferenceCanditate()
+                             where c.Name == referrable.GetType().Name
+                             select c).Any())
+                        {
+                            Reference.DestType = referrable.IdType;
+                            Reference.Value = referrable.AsrPath;
+                        }
+                    }
+                }
             }
         }
 
-        public void SetReferences(int index, string value)
+        public void SetReferences(int index, IReferrable? referrable)
         {
             if ((Type == ArCommonType.References) && (References != null))
             {
-                if ((index >= 0) && (index < References.Count()))
+                if ((index >= -1) && (index < References.Count()))
                 {
-                    GetCommonReferences()[index].Value = value;
+                    if (index == -1)
+                    {
+                        if (referrable != null)
+                        {
+                            var method = References.GetType().GetMethod("Add");
+                            method?.Invoke(Enums, new object[] { referrable });
+                        }
+                    }
+                    else
+                    {
+                        if (referrable != null)
+                        {
+                            var method2 = References.GetType().GetMethod("get_Item");
+
+                            if (method2 != null)
+                            {
+                                var current = method2.Invoke(Enums, new object[] { index });
+                                if (current is IARRef currentRef)
+                                {
+                                    if ((from c in ReferenceCanditate()
+                                         where c.Name == referrable.GetType().Name
+                                         select c).Any())
+                                    {
+                                        currentRef.DestType = referrable.IdType;
+                                        currentRef.Value = referrable.AsrPath;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var method = References.GetType().GetMethod("RemoveAt");
+                            method?.Invoke(Enums, new object[] { index });
+                        }
+                    }
                 }
             }
         }
 
-        public void SetEnum(string name)
+        public void SetEnum(string? name)
         {
             if ((Type == ArCommonType.Enum) && (Role != null))
             {
-                try
+                if (Enum == null)
                 {
-                    Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
-                    if (Parent.Type == ArCommonType.Meta)
+                    if (name != null)
                     {
-                        Parent.GetMeta().SetValue(Role.Name, Enum);
+                        var c = Parent.Add(Role);
+                        if (c != null)
+                        {
+                            Enum = c.Enum;
+                        }
                     }
                 }
-                catch
+
+                if (Enum != null)
                 {
-                    Enum = Enum.Parse(Role.InterfaceType, $"t{name}", true) as Enum;
-                    if (Parent.Type == ArCommonType.Meta)
+                    if (name == null)
                     {
-                        Parent.GetMeta().SetValue(Role.Name, Enum);
+                        Parent.SetSpecified(Role, false);
+                    }
+                    else if (Enum.ToString()[1..] != name)
+                    {
+                        try
+                        {
+                            Enum = Enum.Parse(Role.InterfaceType, $"e{name}", true) as Enum;
+                            if (Parent.Type == ArCommonType.Meta)
+                            {
+                                Parent.Meta.SetValue(Role.Name, Enum);
+                            }
+                        }
+                        catch
+                        {
+                            Enum = Enum.Parse(Role.InterfaceType, $"t{name}", true) as Enum;
+                            if (Parent.Type == ArCommonType.Meta)
+                            {
+                                Parent.Meta.SetValue(Role.Name, Enum);
+                            }
+                        }
                     }
                 }
             }
@@ -1411,16 +1495,38 @@ namespace ArxmlEditor.Model
             }
         }
 
-        public void SetEnums(int index, string name)
+        public void SetEnums(int index, string? name)
         {
             if ((Type == ArCommonType.Enums) && (Role != null) && (Enums != null))
             {
-                if ((index >= 0) && (index < Enums.Count))
+                if ((index >= -1) && (index < Enums.Count))
                 {
-                    var method = Enums.GetType().GetMethod("set_Item");
-                    if ((Enum.Parse(Role.InterfaceType, $"e{name}", true) is Enum item) && (method != null))
+                    if (index == -1)
                     {
-                        method.Invoke(Enums, new object[] { index, item });
+                        if (name != null)
+                        {
+                            var method = Enums.GetType().GetMethod("Add");
+                            if ((Enum.Parse(Role.InterfaceType, $"e{name}", true) is Enum item) && (method != null))
+                            {
+                                method.Invoke(Enums, new object[] { item });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (name != null)
+                        {
+                            var method = Enums.GetType().GetMethod("set_Item");
+                            if ((Enum.Parse(Role.InterfaceType, $"e{name}", true) is Enum item) && (method != null))
+                            {
+                                method.Invoke(Enums, new object[] { index, item });
+                            }
+                        }
+                        else
+                        {
+                            var method = Enums.GetType().GetMethod("RemoveAt");
+                            method?.Invoke(Enums, new object[] { index });
+                        }
                     }
                 }
             }
@@ -1438,67 +1544,145 @@ namespace ArxmlEditor.Model
             }
         }
 
-        public void SetBool(bool newValue)
+        public void SetBool(bool? newValue)
         {
             if ((Type == ArCommonType.Bool) && (Role != null))
             {
-                if (Parent.Type == ArCommonType.Meta)
+                if (Bool == null)
                 {
-                    Parent.GetMeta().SetValue(Role.Name, newValue);
+                    if (newValue != null)
+                    {
+                        var c = Parent.Add(Role);
+                        if (c != null)
+                        {
+                            Bool = c.Bool;
+                        }
+                    }
+                }
+
+                if (Bool != null)
+                {
+                    if (newValue == null)
+                    {
+                        Parent.SetSpecified(Role, false);
+                    }
+                    else if (Bool != newValue)
+                    {
+                        Bool = newValue;
+                    }
                 }
             }
         }
 
-        public void SetInteger(int newValue)
+        public void SetInteger(int? newValue)
         {
             if ((Type == ArCommonType.Integer) && (Role != null))
             {
-                if (Parent.Type == ArCommonType.Meta)
+                if (Integer == null)
                 {
-                    Parent.GetMeta().SetValue(Role.Name, newValue);
+                    if (newValue != null)
+                    {
+                        var c = Parent.Add(Role);
+                        if (c != null)
+                        {
+                            Integer = c.Integer;
+                        }
+                    }
+                }
+
+                if (Integer != null)
+                {
+                    if (newValue == null)
+                    {
+                        Parent.SetSpecified(Role, false);
+                    }
+                    else
+                    {
+                        if (newValue < 0)
+                        {
+                            if (newValue != Integer.SignedValue)
+                            {
+                                Integer.SignedValue = (long)newValue;
+                            }
+                        }
+                        else
+                        {
+                            if (newValue != Integer.SignedValue)
+                            {
+                                Integer.UnsignedValue = (ulong)newValue;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        public void SetOther(object newValue)
+        public void SetOther(object? newValue)
         {
             if ((Type == ArCommonType.Other) && (Role != null))
             {
-                if ((Parent.Type == ArCommonType.Meta) && (Parent.Meta != null))
+                if (Obj == null)
                 {
-                    Parent.Meta.SetValue(Role.Name, newValue);
-                }
-                else if ((Parent.Type == ArCommonType.Reference) && (Parent.Reference != null))
-                {
-                    Parent.Reference.SetValue(Role.Name, newValue);
-                }
-            }
-            else if ((Type == ArCommonType.Integer) && (Role != null) && (Integer != null))
-            {
-                if (newValue is string s)
-                {
-                    if (UInt64.TryParse(s, out ulong v))
+                    if (newValue != null)
                     {
-                        Integer.Signed = false;
-                        Integer.UnsignedValue = v;
+                        var c = Parent.Add(Role);
+                        if (c != null)
+                        {
+                            Obj = c.Obj;
+                        }
                     }
-                    else if (Int64.TryParse(s, out long sv))
+                }
+
+                if (Obj != null)
+                {
+                    if (newValue == null)
                     {
-                        Integer.Signed = true;
-                        Integer.SignedValue = sv;
+                        Parent.SetSpecified(Role, false);
+                    }
+                    else if (Obj != newValue)
+                    {
+                        Obj = newValue;
                     }
                 }
             }
         }
 
-        public void SetOthers(int index, object newValue)
+        public void SetOthers(int index, object? newValue)
         {
             if ((Type == ArCommonType.Others) && (Role != null) && (Objs != null))
             {
-                if ((index >= 0) && (index < Objs.Count()))
+                if ((index >= -1) && (index < Objs.Count()))
                 {
-                    var method = Objs.GetType().GetMethod("set_Item");
-                    method?.Invoke(Enums, new object[] { index, newValue });
+                    if (index == -1)
+                    {
+                        if (newValue != null)
+                        {
+                            var method = Objs.GetType().GetMethod("Add");
+                            method?.Invoke(Objs, new object[] { newValue });
+                        }
+                    }
+                    else
+                    {
+                        if (newValue != null)
+                        {
+                            var method = Objs.GetType().GetMethod("set_Item");
+                            var method2 = Objs.GetType().GetMethod("get_Item");
+
+                            if ((method != null) && (method2 != null))
+                            {
+                                var current = method2.Invoke(Objs, new object[] { index });
+                                if (current != newValue)
+                                {
+                                    method?.Invoke(Objs, new object[] { index, newValue });
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var method = Objs.GetType().GetMethod("RemoveAt");
+                            method?.Invoke(Objs, new object[] { index });
+                        }
+                    }
                 }
             }
         }
@@ -1555,20 +1739,27 @@ namespace ArxmlEditor.Model
                 {
                     case ArCommonType.Reference:
                         {
-                            if (value is string s)
+                            if (value is IReferrable referrable)
                             {
                                 if ((Reference == null) && (Role != null))
                                 {
                                     var c = Parent.Add(Role);
                                     if (c != null)
                                     {
-                                        c.SetReference(s);
+                                        c.SetReference(referrable);
                                         Reference = c.Reference;
                                     }
                                 }
                                 else if (Reference != null)
                                 {
-                                    SetReference(s);
+                                    SetReference(referrable);
+                                }
+                            }
+                            else if (value == null)
+                            {
+                                if (Role != null)
+                                {
+                                    Parent.SetSpecified(Role, false);
                                 }
                             }
                         }
@@ -1578,35 +1769,11 @@ namespace ArxmlEditor.Model
                         {
                             if (value is string s)
                             {
-                                if ((Enum == null) && (Role != null))
-                                {
-                                    var c = Parent.Add(Role);
-                                    if (c != null)
-                                    {
-                                        c.SetEnum(s);
-                                        Enum = c.Enum;
-                                    }
-                                }
-                                else if (Enum != null)
-                                {
-                                    SetEnum(s);
-                                }
+                                SetEnum(s);
                             }
-                            else if (value is int i)
+                            else if (value == null)
                             {
-                                if ((Enum == null) && (Role != null))
-                                {
-                                    var c = Parent.Add(Role);
-                                    if (c != null)
-                                    {
-                                        c.SetEnum(i);
-                                        Enum = c.Enum;
-                                    }
-                                }
-                                else if (Enum != null)
-                                {
-                                    SetEnum(i);
-                                }
+                                SetEnum(null);
                             }
                         }
                         break;
@@ -1615,19 +1782,11 @@ namespace ArxmlEditor.Model
                         {
                             if (value is bool b)
                             {
-                                if ((Bool == null) && (Role != null))
-                                {
-                                    var c = Parent.Add(Role);
-                                    if (c != null)
-                                    {
-                                        c.SetBool(b);
-                                        Bool = c.Bool;
-                                    }
-                                }
-                                else if (Bool != null)
-                                {
-                                    SetBool(b);
-                                }
+                                SetBool(b);
+                            }
+                            else if (value == null)
+                            {
+                                SetBool(null);
                             }
                         }
                         break;
@@ -1636,19 +1795,11 @@ namespace ArxmlEditor.Model
                         {
                             if (value is int i)
                             {
-                                if ((Integer == null) && (Role != null))
-                                {
-                                    var c = Parent.Add(Role);
-                                    if (c != null)
-                                    {
-                                        c.SetInteger(i);
-                                        Integer = c.Integer;
-                                    }
-                                }
-                                else if (Integer != null)
-                                {
-                                    SetInteger(i);
-                                }
+                                SetInteger(i);
+                            }
+                            else if (value == null)
+                            {
+                                SetInteger(null);
                             }
                         }
                         break;
@@ -1657,19 +1808,11 @@ namespace ArxmlEditor.Model
                         {
                             if (value is object o)
                             {
-                                if ((Obj == null) && (Role != null))
-                                {
-                                    var c = Parent.Add(Role);
-                                    if (c != null)
-                                    {
-                                        c.SetOther(o);
-                                        Obj = c.Obj;
-                                    }
-                                }
-                                else if (Obj != null)
-                                {
-                                    SetOther(o);
-                                }
+                                SetOther(o);
+                            }
+                            else if (value == null)
+                            {
+                                SetOther(null);
                             }
                         }
                         break;
