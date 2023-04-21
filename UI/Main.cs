@@ -49,6 +49,12 @@ namespace ArxmlEditor
             //ArCommon.ArFilter = new()
             //{
             //    {
+            //        "All", new()
+            //        {
+            //            { "Exclude", new string[] { "Timestamp", "Checksum" } }
+            //        }
+            //    },
+            //    {
             //        "ArPackage", new()
             //        {
             //            {"Include", new string[] { "ArPackage", "Element" } }

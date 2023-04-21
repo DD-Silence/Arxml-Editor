@@ -640,6 +640,7 @@ namespace ArxmlEditor.Model
         {
             ArCommonList result = new();
             Dictionary<string, string[]>? filter = null;
+            Dictionary<string, string[]>? filterAll = null;
             if (Role != null)
             {
                 if ((Role.MultipleInterfaceTypes) && (Meta != null))
@@ -656,6 +657,11 @@ namespace ArxmlEditor.Model
                         filter = ArFilter[Role.Name];
                     }
                 }
+            }
+
+            if (ArFilter.ContainsKey("All"))
+            {
+                filterAll = ArFilter["All"];
             }
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
@@ -679,6 +685,24 @@ namespace ArxmlEditor.Model
                         else if (filter.ContainsKey("Exclude"))
                         {
                             if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (filterAll != null)
+                    {
+                        if (filterAll.ContainsKey("Include"))
+                        {
+                            if (!filterAll["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filterAll.ContainsKey("Exclude"))
+                        {
+                            if (filterAll["Exclude"].Contains(o.Name))
                             {
                                 continue;
                             }
@@ -739,6 +763,8 @@ namespace ArxmlEditor.Model
         {
             List<IMetaRI> result = new();
             Dictionary<string, string[]>? filter = null;
+            Dictionary<string, string[]>? filterAll = null;
+
             if (Role != null)
             {
                 if ((Role.MultipleInterfaceTypes) && (Meta != null))
@@ -756,6 +782,11 @@ namespace ArxmlEditor.Model
                     }
                 }
             }
+
+            if (ArFilter.ContainsKey("All"))
+                    {
+                        filterAll = ArFilter["All"];
+                    }
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -778,6 +809,24 @@ namespace ArxmlEditor.Model
                         else if (filter.ContainsKey("Exclude"))
                         {
                             if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (filterAll != null)
+                    {
+                        if (filterAll.ContainsKey("Include"))
+                        {
+                            if (!filterAll["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filterAll.ContainsKey("Exclude"))
+                        {
+                            if (filterAll["Exclude"].Contains(o.Name))
                             {
                                 continue;
                             }
@@ -814,6 +863,8 @@ namespace ArxmlEditor.Model
         {
             ArCommonList result = new();
             IMetaObjectInstance? meta = null;
+            Dictionary<string, string[]>? filter = null;
+            Dictionary<string, string[]>? filterAll = null;
 
             if ((Type == ArCommonType.Meta) && (Meta != null))
             {
@@ -824,7 +875,6 @@ namespace ArxmlEditor.Model
                 meta = Reference;
             }
 
-            Dictionary<string, string[]>? filter = null;
             if (Role != null)
             {
                 if ((Role.MultipleInterfaceTypes) && (Meta != null))
@@ -841,6 +891,11 @@ namespace ArxmlEditor.Model
                         filter = ArFilter[Role.Name];
                     }
                 }
+            }
+
+            if (ArFilter.ContainsKey("All"))
+            {
+                filterAll = ArFilter["All"];
             }
 
             if (meta != null)
@@ -864,6 +919,24 @@ namespace ArxmlEditor.Model
                         else if (filter.ContainsKey("Exclude"))
                         {
                             if (filter["Exclude"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (filterAll != null)
+                    {
+                        if (filterAll.ContainsKey("Include"))
+                        {
+                            if (!filterAll["Include"].Contains(o.Name))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (filterAll.ContainsKey("Exclude"))
+                        {
+                            if (filterAll["Exclude"].Contains(o.Name))
                             {
                                 continue;
                             }
