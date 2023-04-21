@@ -1,5 +1,5 @@
 # ArxmlEditor
-Similar to Artop editor example. A Viewer which can view add and delete element in arxml.
+Similar to Artop editor example. A Viewer which can view create, modify and delete element in arxml.
 ![image](https://user-images.githubusercontent.com/101047683/226934271-f2fbe86a-2488-489f-9f8e-d5ed2d59bfe6.png)
 
 * With help of Vector AUTOSAR Scripting Engine, it is easy to handle arxml for all kind of version from R4.0 to R20-11.
@@ -10,8 +10,33 @@ Similar to Artop editor example. A Viewer which can view add and delete element 
 This repository is a kind of experimental and latter may use this technology in Autosar Configurator repository.
 
 # Usage
-## Prepare file
-Put the arxml you want to view under the folder of data/bswmd.  
+## Add arxml file(s)
+__File -> Load__  
+![image](https://user-images.githubusercontent.com/101047683/233653603-29a74c24-8564-4e9f-b268-ea85f3c72069.png)  
+__Multiple files can be picked at same time.__  
+![image](https://user-images.githubusercontent.com/101047683/233654210-33ca254e-e000-436b-bf80-d40b39112076.png)  
+![image](https://user-images.githubusercontent.com/101047683/233654479-296e42bd-c5be-4c46-bb75-d41f96a65cbd.png)  
+__If you want more file open at same time. Repeat File Load.__  
+
+## Save arxml file(s)
+__File -> Save__  
+![image](https://user-images.githubusercontent.com/101047683/233655085-53a2ab53-a082-461d-8a6c-f15ea4b67cc9.png)  
+
+## Reload opened arxml file(s)
+__File -> Reload__  
+![image](https://user-images.githubusercontent.com/101047683/233655592-a286faf3-3a74-45aa-88b4-20bee15d24f1.png)  
+
+## Create new arxml file
+__File -> New__  
+![image](https://user-images.githubusercontent.com/101047683/233655692-94a1c4ab-ab77-4197-a91a-26e232a2a481.png)
+__Choose arxml version__  
+![image](https://user-images.githubusercontent.com/101047683/233656190-d54b278e-f01e-41dc-85af-c7ac3d71eb50.png)   
+__Input filename and save__  
+![image](https://user-images.githubusercontent.com/101047683/233656268-766d0925-0903-4375-99f1-3a056c5a8327.png)  
+
+## Close opened arxml file(s)  
+![image](https://user-images.githubusercontent.com/101047683/233656469-ec05b913-8c74-485d-b4b4-5472f79c1ca0.png)  
+
 
 ## View
 __When mouse hover over am item, a short summary will appear.__  
@@ -52,9 +77,6 @@ __Multiple property can be modified.__
 __Multiple property can be deleted and added.__  
 ![image](https://user-images.githubusercontent.com/101047683/226937866-605943e6-0151-47fb-8c0a-e48cd2c19294.png)
 
+__Reference in opened arxml can be list to choosen.__  
+![image](https://user-images.githubusercontent.com/101047683/233657448-d8b8b33a-d9c7-43a4-a1db-805d2ada2939.png)  
 
-# Todo
-* When add a element with shortname, shortname can be added with a suitable name rather than a blank.
-* ~~Edit element.~~
-* Jump to reference.
-* Show who reference the node.
